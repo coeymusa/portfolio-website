@@ -126,8 +126,8 @@ export const PROJECTS: Project[] = [
     icon: '<circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
   },
   {
-    id: 'meridian',
-    title: 'Meridian PMO',
+    id: 'rory',
+    title: 'Rory',
     tagline: 'Enterprise project management for defence & aerospace',
     description:
       'Multi-tenant SaaS platform for schedule management, Earned Value Management (EVM), resource planning, and portfolio oversight. Ships as both a web application and an Electron desktop app sharing the same React codebase across a 10-package monorepo.',
@@ -146,6 +146,7 @@ export const PROJECTS: Project[] = [
       'Scenario what-if planning with copy-on-write overlays',
       '43-table database with Row-Level Security for multi-tenant isolation',
     ],
+    liveUrl: 'https://web-production-cb84a.up.railway.app/',
     category: 'enterprise',
     gradient: 'linear-gradient(135deg, #0ea5e9, #ec4899)',
     icon: '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>',
