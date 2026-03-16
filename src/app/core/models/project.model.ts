@@ -174,6 +174,7 @@ export const PROJECTS: Project[] = [
       'Per-player stats: distance, top speed, carries, tackles, ruck involvement, and fitness zones',
       'Web-based annotation tool for ground-truth labelling and evaluation',
     ],
+    liveUrl: 'https://virtuous-optimism-production.up.railway.app/review',
     category: 'ml',
     gradient: 'linear-gradient(135deg, #f59e0b, #10b981)',
     icon: '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>',
