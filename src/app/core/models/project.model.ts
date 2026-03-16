@@ -13,16 +13,17 @@ export interface Project {
 
 export interface TechItem {
   name: string;
-  category: 'frontend' | 'backend' | 'database' | 'infra' | 'api';
+  category: 'frontend' | 'backend' | 'database' | 'infra' | 'api' | 'ml';
 }
 
-export type ProjectCategory = 'saas' | 'platform' | 'enterprise' | 'consultancy';
+export type ProjectCategory = 'saas' | 'platform' | 'enterprise' | 'consultancy' | 'ml';
 
 export const CATEGORY_LABELS: Record<ProjectCategory, string> = {
   saas: 'SaaS',
   platform: 'Platform',
   enterprise: 'Enterprise',
   consultancy: 'Consultancy',
+  ml: 'ML / CV',
 };
 
 export const PROJECTS: Project[] = [
@@ -150,5 +151,31 @@ export const PROJECTS: Project[] = [
     category: 'enterprise',
     gradient: 'linear-gradient(135deg, #0ea5e9, #ec4899)',
     icon: '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>',
+  },
+  {
+    id: 'rugby-cv',
+    title: 'Rugby CV',
+    tagline: 'Computer vision pipeline for automated rugby match analysis',
+    description:
+      'End-to-end ML pipeline that takes raw Veo behind-posts footage and automatically extracts player tracking, team classification, event detection (carries, tackles, rucks), phase analysis, per-player statistics, defensive line metrics, and fitness zones — no manual annotation required.',
+    techStack: [
+      { name: 'Python', category: 'backend' },
+      { name: 'YOLOv8/v11', category: 'ml' },
+      { name: 'PyTorch', category: 'ml' },
+      { name: 'ByteTrack', category: 'ml' },
+      { name: 'OpenCV', category: 'ml' },
+      { name: 'FastAPI', category: 'backend' },
+      { name: 'NumPy / SciPy', category: 'ml' },
+      { name: 'FFmpeg', category: 'infra' },
+    ],
+    features: [
+      '14-stage pipeline: detection, tracking, calibration, team classification, event detection, and stats',
+      'Carries, tackles, and rucks detected at F1 > 0.82 with state-machine temporal validation',
+      'Per-player stats: distance, top speed, carries, tackles, ruck involvement, and fitness zones',
+      'Web-based annotation tool for ground-truth labelling and evaluation',
+    ],
+    category: 'ml',
+    gradient: 'linear-gradient(135deg, #f59e0b, #10b981)',
+    icon: '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>',
   },
 ];

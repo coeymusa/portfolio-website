@@ -5,7 +5,7 @@ import { Project, TechItem } from '../../../core/models/project.model';
   selector: 'app-project-card',
   standalone: true,
   template: `
-    <article class="card">
+    <article class="card" [style.--accent-gradient]="project().gradient">
       <div class="header">
         <svg
           class="project-icon"
@@ -90,7 +90,7 @@ import { Project, TechItem } from '../../../core/models/project.model';
 
     .card {
       background: #ffffff;
-      border: none;
+      border: 1px solid rgba(0, 0, 0, 0.04);
       border-radius: 20px;
       padding: 28px;
       position: relative;
@@ -99,6 +99,17 @@ import { Project, TechItem } from '../../../core/models/project.model';
       transition: transform 0.3s ease, box-shadow 0.3s ease;
       height: 100%;
       box-sizing: border-box;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--accent-gradient);
+      border-radius: 20px 20px 0 0;
     }
 
     .card:hover {
@@ -152,6 +163,7 @@ import { Project, TechItem } from '../../../core/models/project.model';
     .tagline {
       color: #6b7280;
       font-size: 0.8125rem;
+      font-style: italic;
       margin-bottom: 0.75rem;
     }
 
@@ -201,11 +213,16 @@ import { Project, TechItem } from '../../../core/models/project.model';
       color: #ea580c;
     }
 
+    .pill--ml {
+      background: #fef3c7;
+      color: #b45309;
+    }
+
     .features {
       list-style: none;
       display: flex;
       flex-direction: column;
-      gap: 0.5rem;
+      gap: 0.625rem;
       padding: 0;
       margin: 0;
     }

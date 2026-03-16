@@ -25,19 +25,21 @@ interface ContactLink {
               target="_blank"
               rel="noopener noreferrer"
             >
-              <svg
-                class="link-icon"
-                xmlns="http://www.w3.org/2000/svg"
-                width="32"
-                height="32"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                [innerHTML]="link.icon"
-              ></svg>
+              <div class="icon-circle">
+                <svg
+                  class="link-icon"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="36"
+                  height="36"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  [innerHTML]="link.icon"
+                ></svg>
+              </div>
               <span class="link-label">{{ link.label }}</span>
               <span class="link-url">{{ link.urlText }}</span>
             </a>
@@ -79,9 +81,9 @@ interface ContactLink {
       justify-content: center;
       gap: 0.75rem;
       background: #ffffff;
-      border: none;
+      border: 1px solid rgba(0, 0, 0, 0.04);
       border-radius: 20px;
-      padding: 28px;
+      padding: 32px;
       cursor: pointer;
       text-decoration: none;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
@@ -91,6 +93,26 @@ interface ContactLink {
     .link-card:hover {
       transform: translateY(-2px);
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
+    }
+
+    .link-card:focus-visible {
+      outline: 2px solid #3b82f6;
+      outline-offset: 2px;
+    }
+
+    .icon-circle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: #f9fafb;
+      transition: background 0.25s ease;
+    }
+
+    .link-card:hover .icon-circle {
+      background: #f3f4f6;
     }
 
     .link-icon {
@@ -133,6 +155,12 @@ export class ContactComponent {
       url: 'mailto:coreymusa@outlook.com',
       urlText: 'coreymusa@outlook.com',
       icon: '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>',
+    },
+    {
+      label: 'Instagram',
+      url: 'https://instagram.com/coreym96',
+      urlText: '@coreym96',
+      icon: '<rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>',
     },
   ];
 }

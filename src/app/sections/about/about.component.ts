@@ -68,6 +68,7 @@ import { RouterLink } from '@angular/router';
 
     .bio-card {
       background: #ffffff;
+      border: 1px solid rgba(0, 0, 0, 0.04);
       border-radius: 20px;
       padding: 28px;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
@@ -96,13 +97,21 @@ import { RouterLink } from '@angular/router';
       margin-top: 8px;
       font-size: 0.875rem;
       font-weight: 500;
-      color: #9ca3af;
+      color: #6b7280;
       text-decoration: none;
       transition: color 0.2s ease;
     }
 
+    .cv-link svg {
+      transition: transform 0.2s ease;
+    }
+
     .cv-link:hover {
       color: #111827;
+    }
+
+    .cv-link:hover svg {
+      transform: translateX(3px);
     }
 
     .stats-grid {
@@ -113,16 +122,25 @@ import { RouterLink } from '@angular/router';
 
     .stat-card {
       background: #ffffff;
+      border: 1px solid rgba(0, 0, 0, 0.04);
+      border-bottom: 2px solid transparent;
       border-radius: 20px;
       padding: 24px;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
       display: flex;
       flex-direction: column;
       gap: 0.25rem;
+      transition: transform 0.25s ease, box-shadow 0.25s ease, border-bottom-color 0.25s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
+      border-bottom-color: #111827;
     }
 
     .stat-number {
-      font-size: 2rem;
+      font-size: 1.75rem;
       font-weight: 700;
       color: #111827;
       line-height: 1.2;
