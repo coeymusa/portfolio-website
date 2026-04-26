@@ -733,13 +733,14 @@ export class CvComponent {
       ],
     },
     {
-      title: 'Frontend Development Consultant',
+      title: 'Frontend Development Consultant · Backbase Specialist',
       company: 'Credit Suisse (Contract)',
       location: 'Zurich, Switzerland',
       period: 'Aug 2020 – Feb 2023',
       context: '',
       bullets: [
-        'Architected Angular 12 micro frontends adopted across multiple business units — became the standard component library for the wealth platform',
+        'Brought in as a Backbase platform specialist after my time at Backbase HQ — extended and customised the Backbase wealth-management widgets for Credit Suisse advisors',
+        'Architected Angular 12 micro frontends on top of the Backbase orchestration layer — adopted across multiple business units as the standard component library for the wealth platform',
         'Led and mentored distributed international teams; set the bar for frontend quality and consistency',
       ],
     },
