@@ -801,9 +801,10 @@ export class CvComponent {
       location: 'Zurich, Switzerland',
       period: 'Jun 2024 – Jul 2025',
       context:
-        'UBS acquired Credit Suisse in the largest Swiss banking merger in history. Tasked with consolidating two wealth management platforms and rolling out to EMEA.',
+        'UBS acquired Credit Suisse in the largest Swiss banking merger in history. Tasked with consolidating two wealth management platforms — Credit Suisse\'s Angular stack onto UBS\'s React stack — and rolling out to EMEA.',
       bullets: [
-        'Led full-stack Java 17/React development for the merged wealth management platform — the largest banking integration in Swiss history',
+        'Led full-stack Java 17 / React development on UBS\'s wealth platform — the receiving side of the largest banking integration in Swiss history',
+        'Drove the Angular-to-React migration of Credit Suisse features into the UBS platform — translating components, state, and integration patterns across two very different frameworks',
         'Delivered and deployed the consolidated application to Spain, Italy, and UK clients across three EMEA regions',
         'Authored architectural design documents for system changes and improvements — formalising technical decisions for stakeholder sign-off',
         'Designed the entire technical hiring process from scratch — pair programming exercises, assessment criteria — and hired three developers',
@@ -818,7 +819,7 @@ export class CvComponent {
       context: '',
       bullets: [
         'Sole backend developer for the Zurich wealth management team — led the monolith-to-microservices migration single-handedly',
-        'Full-stack React/Java delivery with complete ownership: requirements, design, implementation, testing, deployment',
+        'Full-stack Angular / Java delivery with complete ownership: requirements, design, implementation, testing, deployment',
         'Built and enforced development standards across internationally distributed teams',
         'Ran Java workshops and knowledge-sharing sessions to upskill team members across multiple offices',
       ],
