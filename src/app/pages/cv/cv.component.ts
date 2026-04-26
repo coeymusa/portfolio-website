@@ -63,7 +63,7 @@ import { RouterLink } from '@angular/router';
 
           <ol class="roles">
             @for (role of roles; track role.company + role.title; let i = $index) {
-              <li class="role">
+              <li class="role" [class.role--early]="role.early">
                 <aside class="role-numeral">
                   <span class="numeral-prefix">№</span>
                   <span class="numeral-digit">{{ pad(roles.length - i) }}</span>
@@ -391,6 +391,32 @@ import { RouterLink } from '@angular/router';
     .role:first-child {
       padding-top: 0;
       border-top: none;
+    }
+
+    /* Early career — small gap before, slightly muted treatment */
+    .role--early {
+      margin-top: 2.5rem;
+      padding-top: 3.5rem;
+    }
+
+    .role--early::before {
+      content: '· · ·';
+      display: block;
+      font-family: var(--font-mono);
+      letter-spacing: 0.5em;
+      color: var(--rule-light);
+      text-align: center;
+      grid-column: 1 / -1;
+      margin-bottom: 2rem;
+      margin-top: -2rem;
+    }
+
+    .role--early .numeral-digit {
+      color: var(--brass-mute);
+    }
+
+    .role--early .role-company {
+      color: var(--brass-mute);
     }
 
     .role-numeral {
@@ -737,6 +763,19 @@ export class CvComponent {
       bullets: [
         'Promoted from Junior to Software Engineer within 6 months. Java microservices, full lifecycle ownership, and Scrum-master responsibilities on a 2-year graduate programme',
       ],
+    },
+    {
+      title: 'Crew Member',
+      company: "McDonald's",
+      location: 'United Kingdom',
+      period: '2013 – 2015',
+      context: '',
+      bullets: [
+        'First job. Front of house, kitchen, drive-thru — worked every station on rotating shifts through sixth form',
+        'Learned how to keep my head when the queue is out the door — composure under pressure, fast hands, fast decisions',
+        'Picked up the muscle memory for showing up, doing the work, and looking after teammates',
+      ],
+      early: true,
     },
   ];
 
