@@ -4,6 +4,7 @@ interface ContactLink {
   label: string;
   url: string;
   urlText: string;
+  channel: string;
   icon: string;
 }
 
@@ -12,38 +13,56 @@ interface ContactLink {
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <section id="contact" class="section">
+    <section id="contact" class="section contact">
       <div class="container">
-        <h2 class="section-heading">Get in Touch</h2>
-        <p class="subtitle">Interested in working together? Reach out.</p>
+        <header class="masthead">
+          <div class="masthead-rule">
+            <span class="rule-tag">VOL. I — CHAPTER THREE</span>
+          </div>
+          <h2 class="archive-title">
+            <em>Initiate</em> Correspondence
+          </h2>
+          <p class="archive-subtitle">
+            Looking for a senior engineer who has shipped both at
+            <em>billion-dollar institutions</em> and <em>solo</em>?
+            Three channels, all read.
+          </p>
+        </header>
 
-        <div class="links-row">
-          @for (link of links; track link.label) {
+        <div class="channels">
+          @for (link of links; track link.label; let i = $index) {
             <a
-              class="link-card"
+              class="channel"
               [href]="link.url"
               target="_blank"
               rel="noopener noreferrer"
             >
-              <div class="icon-circle">
+              <div class="channel-num">{{ pad(i + 1) }}</div>
+              <div class="channel-meta">
+                <span class="channel-tag">{{ link.channel }}</span>
+                <h3 class="channel-label">{{ link.label }}</h3>
+                <span class="channel-url">{{ link.urlText }}</span>
+              </div>
+              <div class="channel-arrow">
                 <svg
-                  class="link-icon"
                   xmlns="http://www.w3.org/2000/svg"
-                  width="36"
-                  height="36"
+                  width="20"
+                  height="20"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
                   stroke-width="1.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  [innerHTML]="link.icon"
-                ></svg>
+                >
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                  <polyline points="12 5 19 12 12 19" />
+                </svg>
               </div>
-              <span class="link-label">{{ link.label }}</span>
-              <span class="link-url">{{ link.urlText }}</span>
             </a>
           }
+        </div>
+
+        <div class="closing">
+          <span class="mono">— end of volume I —</span>
         </div>
       </div>
     </section>
@@ -53,91 +72,246 @@ interface ContactLink {
       display: block;
     }
 
-    .section-heading {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: #111827;
-      text-align: center;
-      margin-bottom: 0.75rem;
+    .contact {
+      background: var(--ink);
     }
 
-    .subtitle {
-      text-align: center;
-      color: #9ca3af;
-      font-size: 0.9375rem;
-      margin-bottom: 2.5rem;
+    /* Masthead */
+    .masthead {
+      margin-bottom: 5rem;
+      max-width: 780px;
     }
 
-    .links-row {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
+    .masthead-rule {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
     }
 
-    .link-card {
+    .masthead-rule::before {
+      content: '';
+      flex: 0 0 60px;
+      height: 1px;
+      background: var(--ember);
+    }
+
+    .masthead-rule::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--rule);
+    }
+
+    .rule-tag {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.25em;
+      color: var(--brass);
+    }
+
+    .archive-title {
+      font-family: var(--font-display);
+      font-variation-settings: 'opsz' 144, 'WONK' 1;
+      font-size: clamp(3rem, 8vw, 6rem);
+      line-height: 0.95;
+      font-weight: 400;
+      color: var(--paper);
+      letter-spacing: -0.04em;
+      margin-bottom: 1.5rem;
+    }
+
+    .archive-title em {
+      font-style: italic;
+      font-weight: 200;
+      color: var(--text-mute);
+      font-size: 0.7em;
+      margin-right: 0.25rem;
+    }
+
+    .archive-subtitle {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: 1.15rem;
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    .archive-subtitle em {
+      color: var(--paper);
+      font-weight: 500;
+    }
+
+    /* Channels list */
+    .channels {
       display: flex;
       flex-direction: column;
+      border-top: 1px solid var(--rule);
+    }
+
+    .channel {
+      display: grid;
+      grid-template-columns: 80px 1fr 40px;
       align-items: center;
-      justify-content: center;
-      gap: 0.75rem;
-      background: #ffffff;
-      border: 1px solid rgba(0, 0, 0, 0.04);
-      border-radius: 20px;
-      padding: 32px;
-      cursor: pointer;
-      text-decoration: none;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
-      transition: box-shadow 0.25s ease, transform 0.25s ease;
+      gap: 2rem;
+      padding: 2rem 1rem;
+      border-bottom: 1px solid var(--rule);
+      transition: background 0.3s ease, padding 0.3s ease;
+      position: relative;
     }
 
-    .link-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
+    .channel::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 0;
+      background: var(--ember);
+      transition: width 0.4s cubic-bezier(0.65, 0, 0.35, 1);
     }
 
-    .link-card:focus-visible {
-      outline: 2px solid #3b82f6;
-      outline-offset: 2px;
+    .channel:hover {
+      background: var(--ink-warm);
+      padding-left: 2rem;
     }
 
-    .icon-circle {
+    .channel:hover::before {
+      width: 3px;
+    }
+
+    .channel-num {
+      font-family: var(--font-display);
+      font-variation-settings: 'opsz' 144, 'WONK' 1;
+      font-size: 3rem;
+      font-weight: 200;
+      color: var(--ember);
+      line-height: 1;
+      letter-spacing: -0.03em;
+    }
+
+    .channel-meta {
       display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      background: #f9fafb;
-      transition: background 0.25s ease;
+      flex-direction: column;
+      gap: 0.4rem;
     }
 
-    .link-card:hover .icon-circle {
-      background: #f3f4f6;
+    .channel-tag {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.25em;
+      color: var(--brass);
+      text-transform: uppercase;
     }
 
-    .link-icon {
-      color: #9ca3af;
-      transition: color 0.25s ease;
+    .channel-label {
+      font-family: var(--font-display);
+      font-size: 1.75rem;
+      font-weight: 400;
+      color: var(--paper);
+      letter-spacing: -0.02em;
+      line-height: 1.1;
     }
 
-    .link-card:hover .link-icon {
-      color: #111827;
+    .channel-url {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--text-mute);
     }
 
-    .link-label {
-      font-size: 0.875rem;
-      font-weight: 600;
-      color: #111827;
+    .channel-arrow {
+      color: var(--text-mute);
+      transition: color 0.3s, transform 0.3s;
     }
 
-    .link-url {
+    .channel:hover .channel-arrow {
+      color: var(--ember);
+      transform: translateX(8px);
+    }
+
+    .channel:hover .channel-label {
+      color: var(--ember);
+    }
+
+    /* Closing */
+    .closing {
+      text-align: center;
+      margin-top: 4rem;
+      padding-top: 3rem;
+      border-top: 1px solid var(--rule);
+    }
+
+    .closing .mono {
+      font-family: var(--font-mono);
       font-size: 0.75rem;
-      color: #9ca3af;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--text-faint);
     }
 
-    @media (max-width: 600px) {
-      .links-row {
-        grid-template-columns: 1fr;
+    /* Responsive */
+    @media (max-width: 700px) {
+      .channel {
+        grid-template-columns: 60px 1fr 30px;
+        gap: 1.25rem;
+        padding: 1.5rem 0.75rem;
+      }
+
+      .channel:hover {
+        padding-left: 1.5rem;
+      }
+
+      .channel-num {
+        font-size: 2.25rem;
+      }
+
+      .channel-label {
+        font-size: 1.25rem;
+      }
+
+      .channel-url {
+        font-size: 0.7rem;
+        word-break: break-all;
+      }
+
+      .masthead {
+        margin-bottom: 3rem;
+      }
+
+      .archive-title {
+        font-size: clamp(2.25rem, 12vw, 3rem);
+      }
+
+      .archive-subtitle {
+        font-size: 1rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .channel {
+        grid-template-columns: 50px 1fr 24px;
+        gap: 1rem;
+        padding: 1.25rem 0.5rem;
+      }
+      .channel-num {
+        font-size: 1.75rem;
+      }
+      .channel-label {
+        font-size: 1.1rem;
+      }
+      .channel-tag {
+        font-size: 0.55rem;
+        letter-spacing: 0.2em;
+      }
+      .closing {
+        margin-top: 2.5rem;
+        padding-top: 2rem;
+      }
+      .masthead-rule::before {
+        flex: 0 0 30px;
+      }
+      .rule-tag {
+        font-size: 0.6rem;
       }
     }
   `,
@@ -145,22 +319,29 @@ interface ContactLink {
 export class ContactComponent {
   readonly links: ContactLink[] = [
     {
+      channel: 'PROFESSIONAL',
       label: 'LinkedIn',
       url: 'https://www.linkedin.com/in/corey-musa/',
       urlText: 'linkedin.com/in/corey-musa',
-      icon: '<path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/>',
+      icon: '',
     },
     {
-      label: 'Email',
+      channel: 'DIRECT',
+      label: 'Electronic Mail',
       url: 'mailto:coreymusa@outlook.com',
       urlText: 'coreymusa@outlook.com',
-      icon: '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>',
+      icon: '',
     },
     {
+      channel: 'PERSONAL',
       label: 'Instagram',
       url: 'https://instagram.com/coreym96',
       urlText: '@coreym96',
-      icon: '<rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>',
+      icon: '',
     },
   ];
+
+  pad(n: number): string {
+    return n.toString().padStart(2, '0');
+  }
 }

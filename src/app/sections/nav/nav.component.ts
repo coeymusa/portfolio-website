@@ -17,21 +17,28 @@ import { Router, RouterLink } from '@angular/router';
     <nav class="nav">
       <div class="nav-inner">
         <a class="logo" routerLink="/" (click)="scrollToTop()">
-          <span class="logo-icon">C</span>
-          <span class="logo-text">Corey</span>
+          <span class="logo-mark">CC</span>
+          <span class="logo-text">
+            <em>Corey's</em><br/>
+            Code Cave
+          </span>
         </a>
 
         <div class="nav-links-desktop">
-          @for (link of navLinks; track link.id) {
+          @for (link of navLinks; track link.id; let i = $index) {
             <a
               class="nav-link"
               [class.active]="activeSection() === link.id"
               (click)="scrollTo(link.id)"
             >
-              {{ link.label }}
+              <span class="link-num">{{ pad(i + 1) }}</span>
+              <span class="link-text">{{ link.label }}</span>
             </a>
           }
-          <a class="nav-link" routerLink="/cv">CV</a>
+          <a class="nav-link nav-link--cv" routerLink="/cv">
+            <span class="link-num">04</span>
+            <span class="link-text">CV</span>
+          </a>
         </div>
 
         <button
@@ -49,16 +56,20 @@ import { Router, RouterLink } from '@angular/router';
       @if (menuOpen()) {
         <div class="mobile-overlay" (click)="menuOpen.set(false)">
           <div class="mobile-menu" (click)="$event.stopPropagation()">
-            @for (link of navLinks; track link.id) {
+            @for (link of navLinks; track link.id; let i = $index) {
               <a
                 class="mobile-link"
                 [class.active]="activeSection() === link.id"
                 (click)="scrollTo(link.id); menuOpen.set(false)"
               >
+                <span class="link-num">{{ pad(i + 1) }}</span>
                 {{ link.label }}
               </a>
             }
-            <a class="mobile-link" routerLink="/cv" (click)="menuOpen.set(false)">CV</a>
+            <a class="mobile-link" routerLink="/cv" (click)="menuOpen.set(false)">
+              <span class="link-num">04</span>
+              CV
+            </a>
           </div>
         </div>
       }
@@ -75,208 +86,218 @@ import { Router, RouterLink } from '@angular/router';
     }
 
     .nav {
-      background: rgba(245, 245, 240, 0.85);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-      height: 64px;
+      background: rgba(10, 9, 7, 0.85);
+      backdrop-filter: blur(16px) saturate(140%);
+      -webkit-backdrop-filter: blur(16px) saturate(140%);
+      border-bottom: 1px solid var(--rule);
     }
 
     .nav-inner {
-      max-width: 1200px;
+      max-width: 1600px;
       margin: 0 auto;
-      padding: 0 24px;
-      height: 64px;
+      padding: 0 3rem;
+      height: 88px;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 2rem;
     }
 
     .logo {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 0.85rem;
       cursor: pointer;
-      text-decoration: none;
       user-select: none;
+      transition: opacity 0.25s;
     }
 
-    .logo-icon {
+    .logo:hover {
+      opacity: 0.85;
+    }
+
+    .logo-mark {
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
-      background: #111827;
-      color: #ffffff;
+      width: 44px;
+      height: 44px;
+      background: var(--ember);
+      color: var(--ink);
       font-weight: 700;
-      font-size: 18px;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-        sans-serif;
+      font-size: 0.9rem;
+      letter-spacing: 0.05em;
+      font-family: var(--font-mono);
     }
 
     .logo-text {
-      font-size: 18px;
-      font-weight: 600;
-      color: #111827;
-      letter-spacing: -0.02em;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-        sans-serif;
+      font-family: var(--font-display);
+      font-size: 0.9rem;
+      line-height: 1.1;
+      color: var(--paper);
+      font-weight: 400;
+      letter-spacing: -0.005em;
+    }
+
+    .logo-text em {
+      font-style: italic;
+      color: var(--text-mute);
+      font-size: 0.85em;
+      font-weight: 200;
     }
 
     .nav-links-desktop {
       display: flex;
       align-items: center;
-      gap: 32px;
+      gap: 2.5rem;
     }
 
     .nav-link {
       position: relative;
-      color: #6b7280;
-      text-decoration: none;
-      font-size: 14px;
-      font-weight: 500;
       cursor: pointer;
-      padding: 4px 0;
-      transition: color 0.25s ease;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-        sans-serif;
+      display: flex;
+      align-items: baseline;
+      gap: 0.45rem;
+      transition: color 0.3s;
     }
 
-    .nav-link:hover {
-      color: #111827;
+    .link-num {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--brass-mute);
+      letter-spacing: 0.15em;
     }
 
-    .nav-link:focus-visible {
-      outline: 2px solid #3b82f6;
-      outline-offset: 4px;
-      border-radius: 2px;
+    .link-text {
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      color: var(--text);
+      font-style: italic;
+      transition: color 0.3s;
     }
 
-    .nav-link::after {
-      content: '';
-      position: absolute;
-      bottom: -2px;
-      left: 0;
-      right: 0;
-      height: 2px;
-      border-radius: 1px;
-      background: #111827;
-      transform: scaleX(0);
-      transform-origin: center;
-      transition: transform 0.25s ease;
+    .nav-link:hover .link-text {
+      color: var(--ember);
     }
 
-    .nav-link.active {
-      color: #111827;
+    .nav-link.active .link-text {
+      color: var(--ember);
     }
 
     .nav-link.active::after {
-      transform: scaleX(1);
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: var(--ember);
     }
 
+    .nav-link:focus-visible {
+      outline: 2px solid var(--ember);
+      outline-offset: 6px;
+    }
+
+    /* Hamburger */
     .hamburger {
       display: none;
       flex-direction: column;
       justify-content: center;
       gap: 5px;
       background: none;
-      border: none;
+      border: 1px solid var(--rule);
       cursor: pointer;
-      padding: 8px;
-      margin-right: -8px;
+      padding: 10px;
+      width: 44px;
+      height: 44px;
+      align-items: center;
     }
 
     .hamburger:focus-visible {
-      outline: 2px solid #3b82f6;
+      outline: 2px solid var(--ember);
       outline-offset: 2px;
-      border-radius: 4px;
     }
 
     .hamburger-line {
       display: block;
-      width: 22px;
-      height: 2px;
-      background: #111827;
-      border-radius: 1px;
+      width: 20px;
+      height: 1px;
+      background: var(--paper);
       transition: transform 0.3s ease, opacity 0.3s ease;
     }
 
     .hamburger-line.open:nth-child(1) {
-      transform: translateY(7px) rotate(45deg);
+      transform: translateY(6px) rotate(45deg);
     }
-
     .hamburger-line.open:nth-child(2) {
       opacity: 0;
     }
-
     .hamburger-line.open:nth-child(3) {
-      transform: translateY(-7px) rotate(-45deg);
+      transform: translateY(-6px) rotate(-45deg);
     }
 
+    /* Mobile menu */
     .mobile-overlay {
       position: fixed;
-      inset: 64px 0 0 0;
-      background: rgba(245, 245, 240, 0.95);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      animation: fadeIn 0.2s ease;
+      inset: 88px 0 0 0;
+      background: rgba(10, 9, 7, 0.97);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      animation: fadeIn 0.25s ease;
     }
 
     .mobile-menu {
       display: flex;
       flex-direction: column;
-      padding: 24px;
-      gap: 8px;
+      padding: 2rem;
+      gap: 0.5rem;
+      border-top: 1px solid var(--rule);
     }
 
     .mobile-link {
-      color: #6b7280;
-      text-decoration: none;
-      font-size: 18px;
-      font-weight: 500;
-      padding: 14px 16px;
-      border-radius: 10px;
+      display: flex;
+      align-items: baseline;
+      gap: 1rem;
+      color: var(--text);
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: 1.5rem;
+      padding: 1rem 0;
       cursor: pointer;
-      transition: color 0.2s ease, background 0.2s ease;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-        sans-serif;
+      transition: color 0.25s;
+      border-bottom: 1px solid var(--rule);
     }
 
-    .mobile-link:hover {
-      color: #111827;
-      background: rgba(0, 0, 0, 0.04);
+    .mobile-link .link-num {
+      font-size: 0.75rem;
+      font-style: normal;
+      color: var(--brass-mute);
     }
 
-    .mobile-link:focus-visible {
-      outline: 2px solid #3b82f6;
-      outline-offset: -2px;
-      border-radius: 10px;
-    }
-
+    .mobile-link:hover,
     .mobile-link.active {
-      color: #111827;
-      background: rgba(0, 0, 0, 0.04);
-      border-left: 3px solid #111827;
+      color: var(--ember);
     }
 
     @keyframes fadeIn {
-      from {
-        opacity: 0;
-      }
-      to {
-        opacity: 1;
-      }
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
 
-    @media (max-width: 767px) {
+    @media (max-width: 768px) {
+      .nav-inner {
+        padding: 0 1.5rem;
+        height: 72px;
+      }
       .nav-links-desktop {
         display: none;
       }
-
       .hamburger {
         display: flex;
+      }
+      .mobile-overlay {
+        inset: 72px 0 0 0;
       }
     }
   `,
@@ -287,12 +308,16 @@ export class NavComponent implements AfterViewInit, OnDestroy {
   readonly menuOpen = signal(false);
 
   readonly navLinks = [
-    { id: 'projects', label: 'Projects' },
+    { id: 'projects', label: 'Archive' },
     { id: 'about', label: 'About' },
     { id: 'contact', label: 'Contact' },
   ];
 
   private observer: IntersectionObserver | null = null;
+
+  pad(n: number): string {
+    return n.toString().padStart(2, '0');
+  }
 
   scrollToTop(): void {
     window.scrollTo({ top: 0, behavior: 'smooth' });

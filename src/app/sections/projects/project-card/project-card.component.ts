@@ -1,247 +1,372 @@
-import { Component, input } from '@angular/core';
-import { Project, TechItem } from '../../../core/models/project.model';
+import { Component, OnInit, computed, input, signal } from '@angular/core';
+import { Project, previewUrl } from '../../../core/models/project.model';
 
 @Component({
   selector: 'app-project-card',
   standalone: true,
   template: `
-    <article class="card" [style.--accent-gradient]="project().gradient">
-      <div class="header">
-        <svg
-          class="project-icon"
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          [innerHTML]="project().icon"
-        ></svg>
-        <h3 class="title">{{ project().title }}</h3>
-        @if (project().liveUrl) {
+    <article
+      class="entry"
+      [class.entry--reversed]="reversed()"
+      [attr.data-theme]="project().theme"
+      [style.--theme-accent]="project().accent"
+    >
+      <!-- Numeral pillar -->
+      <aside class="numeral-side">
+        <div class="numeral-block">
+          <span class="numeral-prefix">№</span>
+          <span class="numeral-digit">{{ paddedIndex() }}</span>
+        </div>
+        <div class="numeral-meta">
+          <span class="cat-tag">{{ getCategoryLabel() }}</span>
+          <span class="cat-rule"></span>
+          <span class="cat-id">{{ project().id }}</span>
+        </div>
+      </aside>
+
+      <!-- Main content -->
+      <div class="content-side">
+        <header class="entry-header">
+          <h3 class="entry-title">{{ project().title }}</h3>
+          <p class="entry-tagline"><em>{{ project().tagline }}</em></p>
+        </header>
+
+        <!-- POLAROID PREVIEW (if site is live) -->
+        @if (preview()) {
           <a
-            class="live-link"
+            class="polaroid"
             [href]="project().liveUrl"
             target="_blank"
             rel="noopener noreferrer"
+            [attr.aria-label]="'Visit ' + project().title"
           >
-            View Live
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="12"
-              height="12"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-              <polyline points="15 3 21 3 21 9"/>
-              <line x1="10" y1="14" x2="21" y2="3"/>
-            </svg>
+            <div class="polaroid-tape"></div>
+            <div class="polaroid-frame">
+              <div class="polaroid-browser">
+                <span class="browser-dot"></span>
+                <span class="browser-dot"></span>
+                <span class="browser-dot"></span>
+                <span class="browser-url">{{ shortUrl() }}</span>
+              </div>
+              <img
+                class="polaroid-img"
+                [src]="preview()"
+                [alt]="project().title + ' — live site preview'"
+                loading="lazy"
+                decoding="async"
+              />
+              <div class="polaroid-hover">
+                <span>open live →</span>
+              </div>
+            </div>
+            @if (project().previewCaption) {
+              <p class="polaroid-caption">{{ project().previewCaption }}</p>
+            }
           </a>
         }
-      </div>
 
-      <p class="tagline">{{ project().tagline }}</p>
+        <!-- THEMED SPECIMEN DEVICE -->
+        <div class="specimen-frame" [attr.data-kind]="project().theme">
+          @switch (project().theme) {
+            @case ('ai-chat') {
+              <div class="device device-prompt">
+                <div class="prompt-bar">
+                  <span class="prompt-dot d1"></span>
+                  <span class="prompt-dot d2"></span>
+                  <span class="prompt-dot d3"></span>
+                  <span class="prompt-host">promptmysite.com</span>
+                </div>
+                <div class="prompt-row prompt-user">
+                  <span class="prompt-arrow">›</span>
+                  <span>{{ specimenStr('userPrompt') }}</span>
+                </div>
+                <div class="prompt-row prompt-ai">
+                  <span class="prompt-arrow ai">∗</span>
+                  <span class="prompt-stream">{{ specimenStr('aiResponse') }}<span class="caret"></span></span>
+                </div>
+                <div class="prompt-meta">
+                  <span>tokens: {{ specimenStr('tokens') }}</span>
+                  <span>·</span>
+                  <span>streaming</span>
+                </div>
+              </div>
+            }
 
-      <p class="description">{{ project().description }}</p>
+            @case ('compliance') {
+              <div class="device device-compliance">
+                <div class="compl-header">
+                  <span class="compl-ref">REF: {{ specimenStr('ref') }}</span>
+                  <span class="stamp">{{ specimenStr('status') }}</span>
+                </div>
+                <div class="compl-rule"></div>
+                <dl class="compl-list">
+                  <div><dt>Scope</dt><dd>{{ specimenStr('scope') }}</dd></div>
+                  <div><dt>Signed</dt><dd>{{ specimenStr('signedBy') }}</dd></div>
+                </dl>
+              </div>
+            }
 
-      <div class="tech-stack">
-        @for (tech of project().techStack; track tech.name) {
-          <span class="pill" [class]="'pill pill--' + tech.category">
-            {{ tech.name }}
-          </span>
-        }
-      </div>
+            @case ('fintech-ledger') {
+              <div class="device device-ledger">
+                <div class="ledger-header">
+                  <span>MEMBER</span>
+                  <span>PRINCIPAL</span>
+                  <span>RATE</span>
+                  <span class="r">STATUS</span>
+                </div>
+                <div class="ledger-row">
+                  <span>{{ specimenStr('memberId') }}</span>
+                  <span class="amount">{{ specimenStr('principal') }}</span>
+                  <span>{{ specimenStr('rate') }}</span>
+                  <span class="r status-ok">{{ specimenStr('status') }}</span>
+                </div>
+                <div class="ledger-foot">
+                  <span class="dot"></span><span>committee approved · disbursed</span>
+                </div>
+              </div>
+            }
 
-      <ul class="features">
-        @for (feature of project().features; track feature) {
-          <li class="feature-item">
-            <svg
-              class="check-icon"
-              xmlns="http://www.w3.org/2000/svg"
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#16a34a"
-              stroke-width="2.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
+            @case ('sports-card') {
+              <div class="device device-sports">
+                <div class="sport-num">{{ specimenStr('cap') }}</div>
+                <div class="sport-meta">
+                  <span class="sport-pos">{{ specimenStr('position') }}</span>
+                  <span class="sport-flag">{{ specimenStr('country') }}</span>
+                </div>
+                <div class="sport-score">
+                  <span class="score-label">MATCH SCORE</span>
+                  <span class="score-num">{{ specimenStr('matchScore') }}</span>
+                </div>
+                <div class="sport-line"></div>
+              </div>
+            }
+
+            @case ('enterprise-gantt') {
+              <div class="device device-gantt">
+                <div class="gantt-row">
+                  <span class="gantt-wbs">{{ specimenStr('wbs') }}</span>
+                  <div class="gantt-track">
+                    <div class="gantt-bar"></div>
+                  </div>
+                </div>
+                <div class="gantt-row">
+                  <span class="gantt-wbs">WBS-3.2.2</span>
+                  <div class="gantt-track">
+                    <div class="gantt-bar half"></div>
+                  </div>
+                </div>
+                <div class="gantt-row">
+                  <span class="gantt-wbs">WBS-3.2.3</span>
+                  <div class="gantt-track">
+                    <div class="gantt-bar quarter"></div>
+                  </div>
+                </div>
+                <div class="gantt-meta">
+                  <span>{{ specimenStr('task') }}</span>
+                  <span class="evm">{{ specimenStr('evm') }}</span>
+                </div>
+              </div>
+            }
+
+            @case ('cv-frame') {
+              <div class="device device-cv">
+                <div class="cv-frame-bar">
+                  <span>FRAME {{ specimenStr('frame') }}</span>
+                  <span class="rec">● REC</span>
+                </div>
+                <div class="cv-canvas">
+                  <div class="bbox bbox-1">
+                    <span class="bbox-label">{{ specimenStr('detection') }}</span>
+                  </div>
+                  <div class="bbox bbox-2">
+                    <span class="bbox-label">PLAYER · 0.91</span>
+                  </div>
+                  <div class="bbox bbox-3">
+                    <span class="bbox-label">BALL · 0.87</span>
+                  </div>
+                </div>
+                <div class="cv-stats">
+                  <span>EVENT: {{ specimenStr('event') }}</span>
+                  <span>{{ specimenStr('f1') }}</span>
+                </div>
+              </div>
+            }
+
+            @case ('mobile-chat') {
+              <div class="device device-chat">
+                <div class="chat-head">
+                  <div class="avatar">{{ specimenStr('contact').charAt(0) }}</div>
+                  <div>
+                    <div class="chat-name">{{ specimenStr('contact') }}</div>
+                    <div class="chat-status">{{ specimenStr('lastSeen') }}</div>
+                  </div>
+                  <div class="chat-unread">{{ specimenStr('unread') }}</div>
+                </div>
+                <div class="chat-bubble bubble-them">
+                  <span>{{ specimenStr('message') }}</span>
+                </div>
+                <div class="chat-bubble bubble-mine">
+                  <span>got it ✓ — added to your context</span>
+                </div>
+              </div>
+            }
+
+            @case ('service-stamp') {
+              <div class="device device-stamp">
+                <div class="stamp-row">
+                  <div class="stamp-col">
+                    <span class="stamp-label">INTAKE</span>
+                    <span class="stamp-text">{{ specimenStr('intake') }}</span>
+                  </div>
+                  <div class="stamp-arrow">→</div>
+                  <div class="stamp-col">
+                    <span class="stamp-label">SHIPPED</span>
+                    <span class="stamp-text">{{ specimenStr('shipped') }}</span>
+                  </div>
+                </div>
+                <div class="stamp-mark">
+                  <span class="stamp-num">{{ specimenStr('days') }}</span>
+                  <span class="stamp-unit">DAY<br/>TURNAROUND</span>
+                </div>
+                <div class="stamp-foot">{{ specimenStr('guarantee') }}</div>
+              </div>
+            }
+          }
+        </div>
+
+        <p class="entry-description">{{ project().description }}</p>
+
+        <!-- Two-column meta -->
+        <div class="meta-grid">
+          <div class="meta-block">
+            <div class="meta-heading">
+              <span class="meta-num">i.</span>
+              <span class="meta-label">stack</span>
+            </div>
+            <ul class="tech-list">
+              @for (tech of project().techStack; track tech.name) {
+                <li class="tech-item" [attr.data-cat]="tech.category">
+                  {{ tech.name }}
+                </li>
+              }
+            </ul>
+          </div>
+
+          <div class="meta-block">
+            <div class="meta-heading">
+              <span class="meta-num">ii.</span>
+              <span class="meta-label">notes</span>
+            </div>
+            <ol class="feature-list">
+              @for (feature of project().features; track feature; let f = $index) {
+                <li class="feature-item">
+                  <span class="feature-num">{{ pad(f + 1) }}</span>
+                  <span class="feature-text">{{ feature }}</span>
+                </li>
+              }
+            </ol>
+          </div>
+        </div>
+
+        @if (project().liveUrl) {
+          <footer class="entry-footer">
+            <a
+              class="visit-link"
+              [href]="project().liveUrl"
+              target="_blank"
+              rel="noopener noreferrer"
             >
-              <polyline points="20 6 9 17 4 12"/>
-            </svg>
-            <span>{{ feature }}</span>
-          </li>
+              <span class="visit-arrow">→</span>
+              <span class="visit-text">view it live</span>
+              <span class="visit-url">{{ shortUrl() }}</span>
+            </a>
+          </footer>
+        } @else {
+          <footer class="entry-footer">
+            <span class="no-link">
+              <span class="visit-arrow">◉</span>
+              <span>internal · not public</span>
+            </span>
+          </footer>
         }
-      </ul>
+      </div>
     </article>
   `,
-  styles: [`
-    :host {
-      display: block;
-    }
-
-    .card {
-      background: #ffffff;
-      border: 1px solid rgba(0, 0, 0, 0.04);
-      border-radius: 20px;
-      padding: 28px;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-      height: 100%;
-      box-sizing: border-box;
-    }
-
-    .card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: var(--accent-gradient);
-      border-radius: 20px 20px 0 0;
-    }
-
-    .card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
-    }
-
-    .header {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      margin-bottom: 0.5rem;
-    }
-
-    .project-icon {
-      color: #111827;
-      flex-shrink: 0;
-    }
-
-    .title {
-      font-size: 1.125rem;
-      font-weight: 600;
-      color: #111827;
-      flex: 1;
-      min-width: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    }
-
-    .live-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      font-size: 0.75rem;
-      color: #9ca3af;
-      white-space: nowrap;
-      flex-shrink: 0;
-      text-decoration: none;
-      transition: color 0.2s ease;
-    }
-
-    .live-link:hover {
-      color: #111827;
-    }
-
-    .live-link:focus-visible {
-      outline: 2px solid #3b82f6;
-      outline-offset: 2px;
-      border-radius: 4px;
-    }
-
-    .tagline {
-      color: #6b7280;
-      font-size: 0.8125rem;
-      font-style: italic;
-      margin-bottom: 0.75rem;
-    }
-
-    .description {
-      color: #6b7280;
-      font-size: 0.875rem;
-      line-height: 1.7;
-      margin-bottom: 1.25rem;
-    }
-
-    .tech-stack {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      margin-bottom: 1.25rem;
-    }
-
-    .pill {
-      font-size: 0.75rem;
-      padding: 4px 10px;
-      border-radius: 8px;
-      font-weight: 500;
-    }
-
-    .pill--frontend {
-      background: #dbeafe;
-      color: #2563eb;
-    }
-
-    .pill--backend {
-      background: #ede9fe;
-      color: #7c3aed;
-    }
-
-    .pill--database {
-      background: #dcfce7;
-      color: #16a34a;
-    }
-
-    .pill--infra {
-      background: #e2e8f0;
-      color: #475569;
-    }
-
-    .pill--api {
-      background: #fff7ed;
-      color: #ea580c;
-    }
-
-    .pill--ml {
-      background: #fef3c7;
-      color: #b45309;
-    }
-
-    .features {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 0.625rem;
-      padding: 0;
-      margin: 0;
-    }
-
-    .feature-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 0.5rem;
-      color: #6b7280;
-      font-size: 0.8125rem;
-      line-height: 1.5;
-    }
-
-    .check-icon {
-      flex-shrink: 0;
-      margin-top: 2px;
-    }
-  `],
+  styleUrl: './project-card.component.scss',
 })
-export class ProjectCardComponent {
+export class ProjectCardComponent implements OnInit {
   project = input.required<Project>();
+  index = input<number>(0);
+  reversed = input<boolean>(false);
+
+  /** Current preview src — starts with the static asset, upgrades to live Microlink when loaded */
+  currentPreview = signal<string | null>(null);
+  livePreviewLoaded = signal(false);
+
+  preview = computed(() => this.currentPreview());
+
+  ngOnInit(): void {
+    const p = this.project();
+
+    // Polaroid is only shown when a staticPreview is provided.
+    // This lets us opt-out per project (e.g. MCU with no public URL,
+    // Rugby CV where the headless screenshot is unreliable).
+    if (!p.staticPreview) return;
+
+    // Step 1: Show static preview immediately (instant)
+    this.currentPreview.set(p.staticPreview);
+
+    // Step 2: Preload the live Microlink screenshot in background.
+    // When it's ready (could take 5-15s on first request), swap it in.
+    if (p.liveUrl) {
+      const liveUrl = previewUrl(p.liveUrl);
+      if (liveUrl) {
+        const img = new Image();
+        img.onload = () => {
+          this.currentPreview.set(liveUrl);
+          this.livePreviewLoaded.set(true);
+        };
+        img.onerror = () => {
+          // Live failed — keep showing static, no problem
+        };
+        img.src = liveUrl;
+      }
+    }
+  }
+
+  paddedIndex(): string {
+    return this.index().toString().padStart(2, '0');
+  }
+
+  pad(n: number): string {
+    return n.toString().padStart(2, '0');
+  }
+
+  shortUrl(): string {
+    const url = this.project().liveUrl;
+    if (!url) return '';
+    try {
+      const u = new URL(url);
+      return u.host.replace(/^www\./, '');
+    } catch {
+      return url;
+    }
+  }
+
+  specimenStr(key: string): string {
+    const v = this.project().specimen.data[key];
+    return v != null ? String(v) : '';
+  }
+
+  getCategoryLabel(): string {
+    const labels: Record<string, string> = {
+      'saas': 'SAAS',
+      'platform': 'PLATFORM',
+      'enterprise': 'ENTERPRISE',
+      'consultancy': 'CONSULTANCY',
+      'ml': 'ML/CV',
+      'service': 'SERVICE',
+    };
+    return labels[this.project().category] || this.project().category.toUpperCase();
+  }
 }

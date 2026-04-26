@@ -7,41 +7,59 @@ import { RouterLink } from '@angular/router';
   imports: [RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <section id="about" class="section">
+    <section id="about" class="section about">
       <div class="container">
-        <h2 class="section-heading">About</h2>
+        <header class="masthead">
+          <div class="masthead-rule">
+            <span class="rule-tag">VOL. I — CHAPTER TWO</span>
+          </div>
+          <h2 class="archive-title">
+            <em>About the</em> Author
+          </h2>
+        </header>
 
         <div class="about-grid">
-          <div class="bio-card">
-            <p>
-              Nine years in software, all within <strong>fintech and banking</strong>.
-              Associate Director at 27. Learned not just how to write software but
-              how to communicate ideas, formalise processes, and drive delivery
-              across distributed teams.
+          <!-- Left: Bio -->
+          <article class="bio">
+            <p class="bio-p">
+              Nine years in software, all within
+              <span class="emph">fintech and banking</span>.
+              Associate Director at twenty-seven. Learned not just how to
+              write software, but how to communicate ideas, formalise
+              processes, and drive delivery across distributed teams.
             </p>
-            <p>
-              When AI emerged, it reignited my passion for building. I've shipped
-              <strong>three AI-powered platforms solo</strong> in six months, all
-              live and generating revenue. Combined with deep enterprise experience
-              and architectural thinking, I build software that's both
-              <strong>technically sound and commercially real</strong>.
+            <p class="bio-p">
+              When AI emerged, it reignited a passion for building. I've
+              shipped <span class="emph">three AI-powered platforms solo</span>
+              in six months — all live, all generating revenue. Combined with
+              deep enterprise experience and architectural thinking, I build
+              software that's both <span class="emph">technically sound and
+              commercially real</span>.
             </p>
             <a class="cv-link" routerLink="/cv">
-              Read full CV
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
-              </svg>
+              <span class="visit-arrow">→</span>
+              <span>read full curriculum vitae</span>
             </a>
-          </div>
+          </article>
 
-          <div class="stats-grid">
-            @for (stat of stats; track stat.label) {
-              <div class="stat-card">
-                <span class="stat-number">{{ stat.value }}</span>
-                <span class="stat-label">{{ stat.label }}</span>
-              </div>
-            }
-          </div>
+          <!-- Right: Stats column -->
+          <aside class="stats-column">
+            <div class="stats-header">
+              <span class="meta-num">i.</span>
+              <span class="meta-label">at a glance</span>
+            </div>
+            <dl class="stats-list">
+              @for (stat of stats; track stat.label; let i = $index) {
+                <div class="stat-row">
+                  <dt class="stat-label">
+                    <span class="stat-num">{{ pad(i + 1) }}</span>
+                    {{ stat.label }}
+                  </dt>
+                  <dd class="stat-value">{{ stat.value }}</dd>
+                </div>
+              }
+            </dl>
+          </aside>
         </div>
       </div>
     </section>
@@ -51,119 +69,277 @@ import { RouterLink } from '@angular/router';
       display: block;
     }
 
-    .section-heading {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: #111827;
-      text-align: center;
-      margin-bottom: 2.5rem;
+    .about {
+      background: var(--ink);
     }
 
+    /* Masthead — same as projects */
+    .masthead {
+      margin-bottom: 5rem;
+      max-width: 780px;
+    }
+
+    .masthead-rule {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .masthead-rule::before {
+      content: '';
+      flex: 0 0 60px;
+      height: 1px;
+      background: var(--ember);
+    }
+
+    .masthead-rule::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--rule);
+    }
+
+    .rule-tag {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.25em;
+      color: var(--brass);
+    }
+
+    .archive-title {
+      font-family: var(--font-display);
+      font-variation-settings: 'opsz' 144, 'WONK' 1;
+      font-size: clamp(3rem, 8vw, 6rem);
+      line-height: 0.95;
+      font-weight: 400;
+      color: var(--paper);
+      letter-spacing: -0.04em;
+    }
+
+    .archive-title em {
+      font-style: italic;
+      font-weight: 200;
+      color: var(--text-mute);
+      font-size: 0.7em;
+      margin-right: 0.25rem;
+    }
+
+    /* Grid */
     .about-grid {
       display: grid;
-      grid-template-columns: 3fr 2fr;
-      gap: 16px;
+      grid-template-columns: 1.3fr 1fr;
+      gap: 5rem;
       align-items: start;
     }
 
-    .bio-card {
-      background: #ffffff;
-      border: 1px solid rgba(0, 0, 0, 0.04);
-      border-radius: 20px;
-      padding: 28px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+    /* Bio */
+    .bio-p {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      line-height: 1.8;
+      color: var(--text);
+      margin-bottom: 1.5rem;
+      max-width: 60ch;
     }
 
-    .bio-card p {
-      color: #6b7280;
-      font-size: 0.9375rem;
-      line-height: 1.75;
-      margin-bottom: 1rem;
+    .bio-p:first-of-type::first-letter {
+      font-family: var(--font-display);
+      font-variation-settings: 'opsz' 144, 'WONK' 1;
+      font-size: 3.5em;
+      float: left;
+      line-height: 0.85;
+      margin-right: 0.6rem;
+      margin-top: 0.4rem;
+      color: var(--ember);
+      font-weight: 400;
     }
 
-    .bio-card p:last-child {
-      margin-bottom: 0;
-    }
-
-    .bio-card strong {
-      color: #111827;
-      font-weight: 600;
+    .emph {
+      color: var(--paper);
+      font-weight: 500;
+      font-style: italic;
     }
 
     .cv-link {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      margin-top: 8px;
-      font-size: 0.875rem;
-      font-weight: 500;
-      color: #6b7280;
-      text-decoration: none;
-      transition: color 0.2s ease;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      letter-spacing: 0.05em;
+      color: var(--text);
+      text-transform: uppercase;
+      transition: color 0.3s;
+      position: relative;
+      padding-bottom: 0.25rem;
     }
 
-    .cv-link svg {
-      transition: transform 0.2s ease;
+    .cv-link::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: var(--ember);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.4s cubic-bezier(0.65, 0, 0.35, 1);
     }
 
     .cv-link:hover {
-      color: #111827;
+      color: var(--ember);
     }
 
-    .cv-link:hover svg {
-      transform: translateX(3px);
+    .cv-link:hover::after {
+      transform: scaleX(1);
     }
 
-    .stats-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
+    .visit-arrow {
+      font-size: 1.2rem;
+      color: var(--ember);
+      transition: transform 0.3s;
     }
 
-    .stat-card {
-      background: #ffffff;
-      border: 1px solid rgba(0, 0, 0, 0.04);
-      border-bottom: 2px solid transparent;
-      border-radius: 20px;
-      padding: 24px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+    .cv-link:hover .visit-arrow {
+      transform: translateX(4px);
+    }
+
+    /* Stats column */
+    .stats-column {
+      border: 1px solid var(--rule);
+      padding: 2rem;
+      background: linear-gradient(180deg, var(--ink-warm) 0%, transparent 100%);
+    }
+
+    .stats-header {
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .meta-num {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: 0.95rem;
+      color: var(--brass);
+    }
+
+    .meta-label {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--text-mute);
+    }
+
+    .stats-list {
       display: flex;
       flex-direction: column;
-      gap: 0.25rem;
-      transition: transform 0.25s ease, box-shadow 0.25s ease, border-bottom-color 0.25s ease;
     }
 
-    .stat-card:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
-      border-bottom-color: #111827;
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 1rem 0;
+      border-bottom: 1px dashed var(--rule);
     }
 
-    .stat-number {
-      font-size: 1.75rem;
-      font-weight: 700;
-      color: #111827;
-      line-height: 1.2;
+    .stat-row:last-child {
+      border-bottom: none;
     }
 
     .stat-label {
-      color: #9ca3af;
-      font-size: 0.8125rem;
+      display: flex;
+      align-items: baseline;
+      gap: 0.6rem;
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: 1rem;
+      color: var(--text);
     }
 
-    @media (max-width: 768px) {
+    .stat-num {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--brass-mute);
+      letter-spacing: 0.15em;
+      font-style: normal;
+    }
+
+    .stat-value {
+      font-family: var(--font-display);
+      font-variation-settings: 'opsz' 144, 'WONK' 1;
+      font-size: 2.5rem;
+      font-weight: 400;
+      color: var(--ember);
+      letter-spacing: -0.03em;
+      line-height: 1;
+    }
+
+    @media (max-width: 900px) {
       .about-grid {
         grid-template-columns: 1fr;
-        gap: 16px;
+        gap: 3rem;
+      }
+      .masthead {
+        margin-bottom: 3rem;
+      }
+      .stat-value {
+        font-size: 2rem;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .archive-title {
+        font-size: clamp(2.25rem, 12vw, 3rem);
+      }
+      .bio-p {
+        font-size: 1rem;
+        line-height: 1.7;
+      }
+      .stats-column {
+        padding: 1.5rem;
+      }
+      .stat-value {
+        font-size: 1.5rem;
+      }
+      .stat-row {
+        padding: 0.75rem 0;
+      }
+      .stat-label {
+        font-size: 0.9rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .bio-p:first-of-type::first-letter {
+        font-size: 2.5em;
+      }
+      .masthead-rule::before {
+        flex: 0 0 30px;
+      }
+      .rule-tag {
+        font-size: 0.6rem;
       }
     }
   `,
 })
 export class AboutComponent {
   readonly stats = [
-    { value: '9', label: 'Years in Software' },
-    { value: '3', label: 'AI Platforms Shipped' },
-    { value: '5', label: 'Production Apps' },
+    { value: '9', label: 'Years in software' },
+    { value: '3', label: 'AI platforms shipped' },
+    { value: '8', label: 'Production projects' },
     { value: 'AD', label: 'Associate Director' },
   ];
+
+  pad(n: number): string {
+    return n.toString().padStart(2, '0');
+  }
 }
