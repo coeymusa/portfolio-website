@@ -241,18 +241,31 @@ import { Router, RouterLink } from '@angular/router';
     .mobile-overlay {
       position: fixed;
       inset: 88px 0 0 0;
-      background: rgba(10, 9, 7, 0.97);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      background: var(--ink);
       animation: fadeIn 0.25s ease;
+      z-index: 99;
+      overflow-y: auto;
+    }
+
+    .mobile-overlay::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at top left, rgba(255, 107, 53, 0.04) 0%, transparent 50%),
+        radial-gradient(ellipse at bottom right, rgba(201, 169, 97, 0.03) 0%, transparent 50%);
+      pointer-events: none;
     }
 
     .mobile-menu {
+      position: relative;
+      z-index: 1;
       display: flex;
       flex-direction: column;
       padding: 2rem;
       gap: 0.5rem;
       border-top: 1px solid var(--rule);
+      background: var(--ink);
     }
 
     .mobile-link {
@@ -298,6 +311,7 @@ import { Router, RouterLink } from '@angular/router';
       }
       .mobile-overlay {
         inset: 72px 0 0 0;
+        background: var(--ink);
       }
     }
   `,
