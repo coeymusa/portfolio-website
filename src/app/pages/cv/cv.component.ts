@@ -1049,6 +1049,5 @@ export class CvComponent {
 
   readonly languages = [
     { name: 'English', level: 'Native' },
-    { name: 'German', level: 'Conversational' },
   ];
 }
