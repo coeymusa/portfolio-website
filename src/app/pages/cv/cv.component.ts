@@ -7,272 +7,676 @@ import { RouterLink } from '@angular/router';
   imports: [RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="cv-container">
-      <a routerLink="/" class="back-link">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        Back to Portfolio
-      </a>
+    <article class="cv">
+      <div class="container">
+        <!-- Top folio bar -->
+        <header class="folio">
+          <a routerLink="/" class="back-link">
+            <span class="back-arrow">←</span>
+            <span class="back-text">return to archive</span>
+          </a>
+          <span class="folio-rule"></span>
+          <span class="folio-mono">CURRICULUM VITÆ · APR MMXXVI</span>
+        </header>
 
-      <!-- Personal Statement -->
-      <div class="card statement-card">
-        <h1 class="name">Corey Musa</h1>
-        <p class="subtitle">Full-Stack Software Engineer</p>
-        <p class="statement">
-          Nine years in software, all within fintech and banking. Associate Director at 27.
-          Learned not just how to write software but how to communicate ideas, formalise processes,
-          and drive delivery across distributed teams. When AI emerged, it reignited my passion for
-          building. Software development became what you imagined when you started: think of a product
-          and make it. I've shipped three AI-powered platforms solo in six months, all live and
-          generating revenue. Combined with deep enterprise experience and architectural thinking,
-          I build software that's both technically sound and commercially real.
-        </p>
-      </div>
+        <!-- Masthead -->
+        <header class="masthead">
+          <div class="masthead-rule">
+            <span class="rule-tag">VOL. I — APPENDIX</span>
+          </div>
+          <h1 class="cv-title">
+            <em>The</em> Author<span class="period">.</span>
+          </h1>
+          <p class="cv-subtitle">
+            Corey Musa <span class="sep">·</span> <em>Full-stack engineer</em>
+            <span class="sep">·</span> Zürich, CH
+          </p>
+        </header>
 
-      <!-- Experience -->
-      <h2 class="section-heading">Experience</h2>
+        <!-- Statement -->
+        <section class="statement-block">
+          <div class="statement-meta">
+            <span class="meta-num">i.</span>
+            <span class="meta-label">statement</span>
+          </div>
+          <p class="statement">
+            <em>N</em>ine years in software, all within
+            <strong>fintech and banking</strong>. Associate Director at
+            twenty-seven. Learned not just how to write software but how
+            to communicate ideas, formalise processes, and drive delivery
+            across distributed teams. When AI emerged, it reignited a
+            passion for building. I've shipped
+            <strong>three AI-powered platforms solo</strong> in six months
+            — all live, all generating revenue. Combined with deep
+            enterprise experience and architectural thinking, I build
+            software that's both
+            <strong>technically sound and commercially real</strong>.
+          </p>
+        </section>
 
-      <div class="roles-list">
-        @for (role of roles; track role.title + role.company) {
-          <div class="card role-card">
-            <div class="role-header">
-              <span class="role-title">{{ role.title }}</span>
-              <span class="role-company"> &middot; {{ role.company }}</span>
-            </div>
-            <div class="role-meta">{{ role.location }} &middot; {{ role.period }}</div>
-            @if (role.context) {
-              <p class="role-context">{{ role.context }}</p>
+        <!-- Experience -->
+        <section class="section-block">
+          <div class="section-rule">
+            <span class="rule-tag">CHAPTER ONE — ENGAGEMENTS</span>
+          </div>
+          <h2 class="section-title">Experience</h2>
+
+          <ol class="roles">
+            @for (role of roles; track role.company + role.title; let i = $index) {
+              <li class="role">
+                <aside class="role-numeral">
+                  <span class="numeral-prefix">№</span>
+                  <span class="numeral-digit">{{ pad(roles.length - i) }}</span>
+                </aside>
+
+                <div class="role-content">
+                  <header class="role-header">
+                    <h3 class="role-title">{{ role.title }}</h3>
+                    <p class="role-company">
+                      <em>at</em> {{ role.company }}
+                    </p>
+                    <div class="role-meta">
+                      <span class="role-loc">{{ role.location }}</span>
+                      <span class="dot">·</span>
+                      <span class="role-period">{{ role.period }}</span>
+                    </div>
+                  </header>
+
+                  @if (role.context) {
+                    <p class="role-context">{{ role.context }}</p>
+                  }
+
+                  <ul class="role-bullets">
+                    @for (bullet of role.bullets; track bullet; let b = $index) {
+                      <li class="bullet">
+                        <span class="bullet-num">{{ pad(b + 1) }}</span>
+                        <span class="bullet-text">{{ bullet }}</span>
+                      </li>
+                    }
+                  </ul>
+                </div>
+              </li>
             }
-            <ul class="role-bullets">
-              @for (bullet of role.bullets; track bullet) {
-                <li>{{ bullet }}</li>
-              }
-            </ul>
+          </ol>
+        </section>
+
+        <!-- Technical Skills -->
+        <section class="section-block">
+          <div class="section-rule">
+            <span class="rule-tag">CHAPTER TWO — INSTRUMENTS</span>
           </div>
-        }
-      </div>
+          <h2 class="section-title">Technical Skills</h2>
 
-      <!-- Technical Skills -->
-      <h2 class="section-heading">Technical Skills</h2>
-
-      <div class="skills-grid">
-        @for (category of skillCategories; track category.label) {
-          <div class="card skill-card">
-            <div class="skill-label">{{ category.label }}</div>
-            <div class="skill-pills">
-              @for (skill of category.skills; track skill) {
-                <span class="pill">{{ skill }}</span>
-              }
-            </div>
+          <div class="skills-grid">
+            @for (category of skillCategories; track category.label; let i = $index) {
+              <div class="skill-block">
+                <div class="skill-heading">
+                  <span class="meta-num">{{ pad(i + 1) }}.</span>
+                  <span class="meta-label">{{ category.label }}</span>
+                </div>
+                <ul class="skill-pills">
+                  @for (skill of category.skills; track skill) {
+                    <li class="pill">{{ skill }}</li>
+                  }
+                </ul>
+              </div>
+            }
           </div>
-        }
-      </div>
+        </section>
 
-      <!-- Education -->
-      <h2 class="section-heading">Education</h2>
+        <!-- Education -->
+        <section class="section-block">
+          <div class="section-rule">
+            <span class="rule-tag">CHAPTER THREE — STUDIES</span>
+          </div>
+          <h2 class="section-title">Education</h2>
 
-      <div class="card education-card">
-        <div class="degree">BSc Computer Science</div>
-        <div class="university">Newcastle University | 2014 - 2017</div>
+          <div class="education">
+            <span class="degree">BSc Computer Science</span>
+            <span class="university">
+              <em>Newcastle University</em>
+              <span class="dot">·</span>
+              MMXIV — MMXVII
+            </span>
+          </div>
+        </section>
+
+        <!-- Closing -->
+        <footer class="closing">
+          <span class="mono">— end of appendix —</span>
+        </footer>
       </div>
-    </div>
+    </article>
   `,
   styles: `
-    .cv-container {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 100px 24px 64px;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    :host {
+      display: block;
+    }
+
+    .cv {
+      background: var(--ink);
+      min-height: 100vh;
+      padding: 6rem 0 4rem;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Top folio */
+    .folio {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-mute);
+      margin-bottom: 4rem;
     }
 
     .back-link {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      font-size: 0.875rem;
-      color: #9ca3af;
-      text-decoration: none;
-      margin-bottom: 24px;
-      transition: color 0.2s ease;
+      gap: 0.5rem;
+      color: var(--text);
+      transition: color 0.3s;
     }
 
     .back-link:hover {
-      color: #111827;
+      color: var(--ember);
     }
 
-    .card {
-      background: #ffffff;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
-      border: none;
-      border-radius: 20px;
-      padding: 28px;
+    .back-arrow {
+      color: var(--ember);
+      font-size: 0.95rem;
     }
 
-    /* Personal Statement */
-    .name {
-      font-size: 2rem;
-      font-weight: 700;
-      color: #111827;
-      margin: 0 0 8px;
+    .folio-rule {
+      flex: 1;
+      height: 1px;
+      background: var(--rule);
     }
 
-    .subtitle {
-      color: #9ca3af;
-      font-size: 0.9375rem;
-      margin: 0 0 20px;
+    .folio-mono {
+      white-space: nowrap;
+    }
+
+    /* Masthead */
+    .masthead {
+      max-width: 780px;
+      margin-bottom: 5rem;
+    }
+
+    .masthead-rule {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .masthead-rule::before {
+      content: '';
+      flex: 0 0 60px;
+      height: 1px;
+      background: var(--ember);
+    }
+
+    .masthead-rule::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--rule);
+    }
+
+    .rule-tag {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.25em;
+      color: var(--brass);
+    }
+
+    .cv-title {
+      font-family: var(--font-display);
+      font-variation-settings: 'opsz' 144, 'WONK' 1;
+      font-size: clamp(3rem, 8vw, 6rem);
+      line-height: 0.95;
+      font-weight: 400;
+      color: var(--paper);
+      letter-spacing: -0.04em;
+      margin-bottom: 1.5rem;
+    }
+
+    .cv-title em {
+      font-style: italic;
+      font-weight: 200;
+      color: var(--text-mute);
+      font-size: 0.7em;
+      margin-right: 0.25rem;
+    }
+
+    .cv-title .period {
+      color: var(--ember);
+    }
+
+    .cv-subtitle {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: 1.15rem;
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .cv-subtitle em {
+      color: var(--paper);
+      font-weight: 500;
+    }
+
+    .sep {
+      color: var(--rule-light);
+      margin: 0 0.4rem;
+      font-style: normal;
+    }
+
+    /* Statement block */
+    .statement-block {
+      margin-bottom: 6rem;
+      max-width: 780px;
+      padding-top: 2rem;
+      border-top: 1px solid var(--rule);
+    }
+
+    .statement-meta {
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .meta-num {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: 0.95rem;
+      color: var(--brass);
+    }
+
+    .meta-label {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--text-mute);
     }
 
     .statement {
-      font-size: 1.0625rem;
-      line-height: 1.8;
-      color: #6b7280;
-      margin: 0;
+      font-family: var(--font-display);
+      font-size: 1.2rem;
+      line-height: 1.75;
+      color: var(--text);
+      max-width: 65ch;
     }
 
-    /* Section Headings */
-    .section-heading {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: #111827;
-      margin-bottom: 20px;
-      margin-top: 48px;
+    .statement em:first-of-type {
+      font-family: var(--font-display);
+      font-variation-settings: 'opsz' 144, 'WONK' 1;
+      font-size: 3.5em;
+      float: left;
+      line-height: 0.85;
+      margin-right: 0.6rem;
+      margin-top: 0.4rem;
+      color: var(--ember);
+      font-weight: 400;
+      font-style: italic;
+    }
+
+    .statement strong {
+      color: var(--paper);
+      font-weight: 500;
+      font-style: italic;
+    }
+
+    /* Section blocks */
+    .section-block {
+      margin-bottom: 6rem;
+    }
+
+    .section-rule {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .section-rule::before {
+      content: '';
+      flex: 0 0 30px;
+      height: 1px;
+      background: var(--ember);
+    }
+
+    .section-rule::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--rule);
+    }
+
+    .section-title {
+      font-family: var(--font-display);
+      font-variation-settings: 'opsz' 144, 'WONK' 1;
+      font-size: clamp(2.25rem, 5vw, 3.5rem);
+      line-height: 1;
+      font-weight: 400;
+      color: var(--paper);
+      letter-spacing: -0.03em;
+      margin-bottom: 3rem;
     }
 
     /* Roles */
-    .roles-list {
+    .roles {
+      list-style: none;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 3.5rem;
+    }
+
+    .role {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 2.5rem;
+      align-items: start;
+      padding-top: 2.5rem;
+      border-top: 1px solid var(--rule);
+    }
+
+    .role:first-child {
+      padding-top: 0;
+      border-top: none;
+    }
+
+    .role-numeral {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.4rem;
+      line-height: 0.85;
+    }
+
+    .numeral-prefix {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: 1.25rem;
+      color: var(--brass);
+      font-weight: 200;
+      margin-top: 0.5rem;
+    }
+
+    .numeral-digit {
+      font-family: var(--font-display);
+      font-variation-settings: 'opsz' 144, 'WONK' 1;
+      font-size: clamp(3.5rem, 6vw, 5rem);
+      font-weight: 200;
+      color: var(--ember);
+      letter-spacing: -0.05em;
+      line-height: 1;
+    }
+
+    .role-content {
+      max-width: 720px;
     }
 
     .role-header {
-      font-size: 1rem;
-      line-height: 1.5;
+      margin-bottom: 1rem;
     }
 
     .role-title {
-      font-weight: 600;
-      color: #111827;
+      font-family: var(--font-display);
+      font-variation-settings: 'opsz' 144, 'WONK' 1;
+      font-size: clamp(1.5rem, 2.5vw, 2rem);
+      font-weight: 400;
+      line-height: 1.1;
+      color: var(--paper);
+      letter-spacing: -0.02em;
+      margin-bottom: 0.4rem;
     }
 
     .role-company {
-      font-weight: 400;
-      color: #6b7280;
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: 1.1rem;
+      color: var(--ember);
+      margin-bottom: 0.5rem;
+    }
+
+    .role-company em {
+      color: var(--text-mute);
+      font-weight: 200;
+      margin-right: 0.25rem;
     }
 
     .role-meta {
-      font-size: 0.8125rem;
-      color: #9ca3af;
-      margin-top: 2px;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-mute);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .dot {
+      color: var(--rule-light);
     }
 
     .role-context {
+      font-family: var(--font-display);
       font-style: italic;
-      color: #9ca3af;
-      font-size: 0.875rem;
-      margin: 12px 0;
+      font-size: 1rem;
+      color: var(--text);
+      line-height: 1.6;
+      margin: 1.25rem 0;
+      padding: 1rem 1.25rem;
+      border-left: 2px solid var(--brass);
+      background: linear-gradient(90deg, var(--ink-warm), transparent);
     }
 
     .role-bullets {
       list-style: none;
-      padding: 0;
-      margin: 12px 0 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      margin-top: 1.25rem;
     }
 
-    .role-bullets li {
-      position: relative;
-      padding-left: 16px;
-      color: #6b7280;
-      font-size: 0.875rem;
-      line-height: 1.7;
+    .bullet {
+      display: grid;
+      grid-template-columns: 2.25rem 1fr;
+      gap: 0.75rem;
+      font-family: var(--font-display);
+      font-size: 1rem;
+      line-height: 1.6;
+      color: var(--text);
     }
 
-    .role-bullets li + li {
-      margin-top: 6px;
+    .bullet-num {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--brass-mute);
+      padding-top: 0.2rem;
+      letter-spacing: 0.1em;
     }
 
-    .role-bullets li::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 0.55em;
-      width: 5px;
-      height: 5px;
-      border-radius: 50%;
-      background: #9ca3af;
-    }
-
-    /* Skills Grid */
+    /* Skills */
     .skills-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2.5rem;
     }
 
-    .skill-label {
-      font-size: 0.75rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: #9ca3af;
-      margin-bottom: 12px;
+    .skill-block {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .skill-heading {
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--rule);
+      margin-bottom: 1rem;
     }
 
     .skill-pills {
+      list-style: none;
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 0.4rem 0.6rem;
     }
 
     .pill {
-      background: #f3f4f6;
-      color: #6b7280;
-      padding: 4px 10px;
-      border-radius: 8px;
-      font-size: 0.8125rem;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.05em;
+      padding: 0.35rem 0.7rem;
+      color: var(--text);
+      border: 1px solid var(--rule-light);
+      background: var(--ink-warm);
+      transition: all 0.2s;
+    }
+
+    .pill:hover {
+      color: var(--ember);
+      border-color: var(--ember);
     }
 
     /* Education */
-    .education-card {
-      display: inline-block;
+    .education {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      padding: 1.5rem 0;
     }
 
     .degree {
-      font-weight: 600;
-      color: #111827;
-      font-size: 1rem;
+      font-family: var(--font-display);
+      font-size: clamp(1.5rem, 3vw, 2rem);
+      font-weight: 400;
+      color: var(--paper);
+      letter-spacing: -0.02em;
     }
 
     .university {
-      color: #9ca3af;
-      font-size: 0.875rem;
-      margin-top: 4px;
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: 1.05rem;
+      color: var(--text-mute);
+    }
+
+    .university em {
+      color: var(--ember);
+      font-style: italic;
+      font-weight: 500;
+    }
+
+    /* Closing */
+    .closing {
+      text-align: center;
+      margin-top: 6rem;
+      padding-top: 3rem;
+      border-top: 1px solid var(--rule);
+    }
+
+    .closing .mono {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--text-faint);
     }
 
     /* Responsive */
-    @media (max-width: 768px) {
-      .skills-grid {
-        grid-template-columns: repeat(2, 1fr);
+    @media (max-width: 900px) {
+      .role {
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+      }
+
+      .role-numeral {
+        align-items: flex-end;
+      }
+
+      .numeral-digit {
+        font-size: 3rem;
       }
     }
 
-    @media (max-width: 480px) {
+    @media (max-width: 640px) {
+      .cv {
+        padding: 5rem 0 3rem;
+      }
+
+      .folio {
+        margin-bottom: 2.5rem;
+        font-size: 0.6rem;
+        gap: 0.75rem;
+      }
+
+      .folio-rule {
+        display: none;
+      }
+
+      .masthead {
+        margin-bottom: 3.5rem;
+      }
+
+      .masthead-rule::before {
+        flex: 0 0 30px;
+      }
+
+      .rule-tag {
+        font-size: 0.6rem;
+      }
+
+      .statement-block {
+        margin-bottom: 4rem;
+      }
+
+      .statement {
+        font-size: 1.05rem;
+      }
+
+      .statement em:first-of-type {
+        font-size: 2.5em;
+      }
+
+      .section-block {
+        margin-bottom: 4rem;
+      }
+
+      .roles {
+        gap: 2.5rem;
+      }
+
+      .role {
+        padding-top: 2rem;
+      }
+
       .skills-grid {
-        grid-template-columns: 1fr;
+        gap: 1.75rem;
       }
 
-      .cv-container {
-        padding: 100px 16px 64px;
-      }
-
-      .name {
-        font-size: 1.5rem;
+      .closing {
+        margin-top: 4rem;
+        padding-top: 2rem;
       }
     }
   `,
 })
 export class CvComponent {
+  pad(n: number): string {
+    return n.toString().padStart(2, '0');
+  }
+
   readonly roles = [
     {
       title: 'Associate Director',
@@ -338,7 +742,7 @@ export class CvComponent {
 
   readonly skillCategories = [
     {
-      label: 'Backend',
+      label: 'backend',
       skills: [
         'Java 17+',
         'Spring Boot',
@@ -352,7 +756,7 @@ export class CvComponent {
       ],
     },
     {
-      label: 'Frontend',
+      label: 'frontend',
       skills: [
         'Angular 12+',
         'React',
@@ -365,7 +769,7 @@ export class CvComponent {
       ],
     },
     {
-      label: 'AI & LLM',
+      label: 'ai & llm',
       skills: [
         'Prompt Engineering',
         'Claude API',
@@ -376,11 +780,11 @@ export class CvComponent {
       ],
     },
     {
-      label: 'DevOps & Cloud',
+      label: 'devops & cloud',
       skills: ['Docker', 'AWS', 'CI/CD', 'Jenkins', 'GitHub Actions', 'Maven', 'Git', 'SonarQube'],
     },
     {
-      label: 'Practices',
+      label: 'practices',
       skills: [
         'Agile/Scrum',
         'XP',
