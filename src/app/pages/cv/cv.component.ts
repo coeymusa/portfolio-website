@@ -100,34 +100,10 @@ import { RouterLink } from '@angular/router';
           </ol>
         </section>
 
-        <!-- Technical Skills -->
-        <section class="section-block">
-          <div class="section-rule">
-            <span class="rule-tag">CHAPTER TWO — INSTRUMENTS</span>
-          </div>
-          <h2 class="section-title">Technical Skills</h2>
-
-          <div class="skills-grid">
-            @for (category of skillCategories; track category.label; let i = $index) {
-              <div class="skill-block">
-                <div class="skill-heading">
-                  <span class="meta-num">{{ pad(i + 1) }}.</span>
-                  <span class="meta-label">{{ category.label }}</span>
-                </div>
-                <ul class="skill-pills">
-                  @for (skill of category.skills; track skill) {
-                    <li class="pill">{{ skill }}</li>
-                  }
-                </ul>
-              </div>
-            }
-          </div>
-        </section>
-
         <!-- Selected Works callout -->
         <section class="section-block">
           <div class="section-rule">
-            <span class="rule-tag">CHAPTER THREE — SELECTED WORKS</span>
+            <span class="rule-tag">CHAPTER TWO — SELECTED WORKS</span>
           </div>
           <h2 class="section-title">Recent Builds</h2>
 
@@ -144,7 +120,7 @@ import { RouterLink } from '@angular/router';
         <!-- Education -->
         <section class="section-block">
           <div class="section-rule">
-            <span class="rule-tag">CHAPTER FOUR — STUDIES</span>
+            <span class="rule-tag">CHAPTER THREE — STUDIES</span>
           </div>
           <h2 class="section-title">Education</h2>
 
@@ -161,7 +137,7 @@ import { RouterLink } from '@angular/router';
         <!-- Languages -->
         <section class="section-block">
           <div class="section-rule">
-            <span class="rule-tag">CHAPTER FIVE — TONGUES</span>
+            <span class="rule-tag">CHAPTER FOUR — TONGUES</span>
           </div>
           <h2 class="section-title">Languages</h2>
 
@@ -892,158 +868,6 @@ export class CvComponent {
         'Picked up the muscle memory for showing up, doing the work, and looking after teammates',
       ],
       early: true,
-    },
-  ];
-
-  readonly skillCategories = [
-    {
-      label: 'backend & apis',
-      skills: [
-        'Java 17 / 21',
-        'Spring Boot 3',
-        'Spring Security',
-        'Spring Data JPA',
-        'Hono',
-        'Express',
-        'tRPC v11',
-        'REST',
-        'OpenAPI',
-        'GraphQL',
-        'Microservices',
-        'Event-driven',
-        'DDD',
-        'Clean Architecture',
-        'JUnit',
-      ],
-    },
-    {
-      label: 'frontend & ui',
-      skills: [
-        'Angular 19 / 20',
-        'React 19',
-        'Next.js 15 (App Router)',
-        'Server Components',
-        'TypeScript',
-        'RxJS',
-        'Signals',
-        'Astro',
-        'SCSS',
-        'Tailwind',
-        'Framer Motion',
-        'Vite',
-        'Web Performance',
-      ],
-    },
-    {
-      label: 'mobile / cross-platform',
-      skills: [
-        'React Native',
-        'Expo',
-        'EAS',
-        'Electron',
-        'TanStack Query',
-        'Push Notifications',
-        'Apple Sign-In',
-        'IAP',
-      ],
-    },
-    {
-      label: 'databases',
-      skills: [
-        'PostgreSQL 17',
-        'Drizzle ORM',
-        'Hibernate / JPA',
-        'Row-Level Security',
-        'Redis',
-        'BullMQ',
-        'better-sqlite3',
-        'Database Design',
-      ],
-    },
-    {
-      label: 'ai & llm',
-      skills: [
-        'Claude API',
-        'Claude Agent SDK',
-        'OpenAI SDK',
-        'Prompt Engineering',
-        'Generative UI',
-        'RAG',
-        'Tool Use',
-        'Streaming',
-        'Langfuse',
-        'AI Product Design',
-      ],
-    },
-    {
-      label: 'ml & computer vision',
-      skills: [
-        'Python',
-        'PyTorch',
-        'YOLOv8 / v11',
-        'OpenCV',
-        'ByteTrack',
-        'FastAPI',
-        'NumPy',
-        'SciPy',
-        'FFmpeg',
-        'Pose / Tracking',
-      ],
-    },
-    {
-      label: 'real-time & workflows',
-      skills: [
-        'WebSockets',
-        'STOMP',
-        'Server-Sent Events',
-        'Inngest',
-        'Cron / Croner',
-        'Background Jobs',
-      ],
-    },
-    {
-      label: 'cloud, devops & ci/cd',
-      skills: [
-        'AWS (Route53, S3, CloudFront, ACM)',
-        'Railway',
-        'Docker / Compose',
-        'Turborepo',
-        'GitHub Actions',
-        'Jenkins',
-        'pnpm',
-        'Maven',
-        'SonarQube',
-        'Sentry',
-        'PostHog',
-      ],
-    },
-    {
-      label: 'platforms & auth',
-      skills: [
-        'Backbase',
-        'Stripe',
-        'Spring Authorization Server',
-        'Clerk',
-        'OAuth2 / OIDC',
-        'JWT',
-        'Slack Bolt',
-        'Telegraf',
-        'Resend',
-        'Keycloak',
-      ],
-    },
-    {
-      label: 'practices',
-      skills: [
-        'Agile / Scrum',
-        'XP',
-        'TDD',
-        'Test Automation',
-        'API-First Design',
-        'Secure Coding',
-        'Technical Documentation',
-        'Mentoring',
-      ],
     },
   ];
 
