@@ -124,10 +124,27 @@ import { RouterLink } from '@angular/router';
           </div>
         </section>
 
+        <!-- Selected Works callout -->
+        <section class="section-block">
+          <div class="section-rule">
+            <span class="rule-tag">CHAPTER THREE — SELECTED WORKS</span>
+          </div>
+          <h2 class="section-title">Recent Builds</h2>
+
+          <p class="works-blurb">
+            Seven shipped projects spanning AI SaaS, fintech platforms,
+            ML pipelines, mobile apps, and consultancy services.
+            <a routerLink="/" class="works-link">
+              <span class="works-arrow">→</span>
+              <span>see Vol. I — Chapter One for the live archive</span>
+            </a>
+          </p>
+        </section>
+
         <!-- Education -->
         <section class="section-block">
           <div class="section-rule">
-            <span class="rule-tag">CHAPTER THREE — STUDIES</span>
+            <span class="rule-tag">CHAPTER FOUR — STUDIES</span>
           </div>
           <h2 class="section-title">Education</h2>
 
@@ -139,6 +156,24 @@ import { RouterLink } from '@angular/router';
               MMXIV — MMXVII
             </span>
           </div>
+        </section>
+
+        <!-- Languages -->
+        <section class="section-block">
+          <div class="section-rule">
+            <span class="rule-tag">CHAPTER FIVE — TONGUES</span>
+          </div>
+          <h2 class="section-title">Languages</h2>
+
+          <ul class="languages">
+            @for (lang of languages; track lang.name; let i = $index) {
+              <li class="lang">
+                <span class="lang-num">{{ pad(i + 1) }}</span>
+                <span class="lang-name">{{ lang.name }}</span>
+                <span class="lang-level"><em>{{ lang.level }}</em></span>
+              </li>
+            }
+          </ul>
         </section>
 
         <!-- Closing -->
@@ -604,6 +639,86 @@ import { RouterLink } from '@angular/router';
       font-weight: 500;
     }
 
+    /* Selected Works */
+    .works-blurb {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      line-height: 1.7;
+      color: var(--text);
+      max-width: 65ch;
+    }
+
+    .works-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      letter-spacing: 0.05em;
+      color: var(--ember);
+      text-transform: uppercase;
+      transition: gap 0.3s;
+      padding-bottom: 0.2rem;
+      border-bottom: 1px solid transparent;
+      width: fit-content;
+    }
+
+    .works-link:hover {
+      gap: 0.85rem;
+      border-color: var(--ember);
+    }
+
+    .works-arrow {
+      font-size: 1.1rem;
+    }
+
+    /* Languages */
+    .languages {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+
+    .lang {
+      display: grid;
+      grid-template-columns: 2.5rem 1fr auto;
+      gap: 1rem;
+      align-items: baseline;
+      padding: 0.75rem 0;
+      border-bottom: 1px dashed var(--rule);
+    }
+
+    .lang:last-child {
+      border-bottom: none;
+    }
+
+    .lang-num {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--brass-mute);
+      letter-spacing: 0.1em;
+    }
+
+    .lang-name {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 400;
+      color: var(--paper);
+    }
+
+    .lang-level {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: 1rem;
+      color: var(--text-mute);
+    }
+
+    .lang-level em {
+      color: var(--ember);
+    }
+
     /* Closing */
     .closing {
       text-align: center;
@@ -782,58 +897,158 @@ export class CvComponent {
 
   readonly skillCategories = [
     {
-      label: 'backend',
+      label: 'backend & apis',
       skills: [
-        'Java 17+',
-        'Spring Boot',
-        'RESTful APIs',
-        'Clean Architecture',
+        'Java 17 / 21',
+        'Spring Boot 3',
+        'Spring Security',
+        'Spring Data JPA',
+        'Hono',
+        'Express',
+        'tRPC v11',
+        'REST',
+        'OpenAPI',
+        'GraphQL',
+        'Microservices',
+        'Event-driven',
         'DDD',
-        'PostgreSQL',
-        'JPA/Hibernate',
-        'OAuth2/OIDC',
+        'Clean Architecture',
         'JUnit',
       ],
     },
     {
-      label: 'frontend',
+      label: 'frontend & ui',
       skills: [
-        'Angular 12+',
-        'React',
+        'Angular 19 / 20',
+        'React 19',
+        'Next.js 15 (App Router)',
+        'Server Components',
         'TypeScript',
         'RxJS',
-        'State Management',
+        'Signals',
+        'Astro',
         'SCSS',
-        'Responsive Design',
+        'Tailwind',
+        'Framer Motion',
+        'Vite',
         'Web Performance',
+      ],
+    },
+    {
+      label: 'mobile / cross-platform',
+      skills: [
+        'React Native',
+        'Expo',
+        'EAS',
+        'Electron',
+        'TanStack Query',
+        'Push Notifications',
+        'Apple Sign-In',
+        'IAP',
+      ],
+    },
+    {
+      label: 'databases',
+      skills: [
+        'PostgreSQL 17',
+        'Drizzle ORM',
+        'Hibernate / JPA',
+        'Row-Level Security',
+        'Redis',
+        'BullMQ',
+        'better-sqlite3',
+        'Database Design',
       ],
     },
     {
       label: 'ai & llm',
       skills: [
-        'Prompt Engineering',
         'Claude API',
-        'OpenAI',
+        'Claude Agent SDK',
+        'OpenAI SDK',
+        'Prompt Engineering',
         'Generative UI',
-        'Content Extraction',
+        'RAG',
+        'Tool Use',
+        'Streaming',
+        'Langfuse',
         'AI Product Design',
       ],
     },
     {
-      label: 'devops & cloud',
-      skills: ['Docker', 'AWS', 'CI/CD', 'Jenkins', 'GitHub Actions', 'Maven', 'Git', 'SonarQube'],
+      label: 'ml & computer vision',
+      skills: [
+        'Python',
+        'PyTorch',
+        'YOLOv8 / v11',
+        'OpenCV',
+        'ByteTrack',
+        'FastAPI',
+        'NumPy',
+        'SciPy',
+        'FFmpeg',
+        'Pose / Tracking',
+      ],
+    },
+    {
+      label: 'real-time & workflows',
+      skills: [
+        'WebSockets',
+        'STOMP',
+        'Server-Sent Events',
+        'Inngest',
+        'Cron / Croner',
+        'Background Jobs',
+      ],
+    },
+    {
+      label: 'cloud, devops & ci/cd',
+      skills: [
+        'AWS (Route53, S3, CloudFront, ACM)',
+        'Railway',
+        'Docker / Compose',
+        'Turborepo',
+        'GitHub Actions',
+        'Jenkins',
+        'pnpm',
+        'Maven',
+        'SonarQube',
+        'Sentry',
+        'PostHog',
+      ],
+    },
+    {
+      label: 'platforms & auth',
+      skills: [
+        'Backbase',
+        'Stripe',
+        'Spring Authorization Server',
+        'Clerk',
+        'OAuth2 / OIDC',
+        'JWT',
+        'Slack Bolt',
+        'Telegraf',
+        'Resend',
+        'Keycloak',
+      ],
     },
     {
       label: 'practices',
       skills: [
-        'Agile/Scrum',
+        'Agile / Scrum',
         'XP',
-        'API-First Design',
         'TDD',
         'Test Automation',
+        'API-First Design',
         'Secure Coding',
         'Technical Documentation',
+        'Mentoring',
       ],
     },
+  ];
+
+  readonly languages = [
+    { name: 'English', level: 'Native' },
+    { name: 'German', level: 'Conversational' },
   ];
 }
