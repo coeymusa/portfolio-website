@@ -5,7 +5,9 @@ import {
   AfterViewInit,
   OnDestroy,
   ChangeDetectionStrategy,
+  PLATFORM_ID,
 } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 
 @Component({
@@ -318,6 +320,7 @@ import { Router, RouterLink } from '@angular/router';
 })
 export class NavComponent implements AfterViewInit, OnDestroy {
   private router = inject(Router);
+  private platformId = inject(PLATFORM_ID);
   readonly activeSection = signal<string>('hero');
   readonly menuOpen = signal(false);
 
@@ -350,6 +353,8 @@ export class NavComponent implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+
     const sectionIds = ['hero', 'projects', 'about', 'contact'];
 
     this.observer = new IntersectionObserver(

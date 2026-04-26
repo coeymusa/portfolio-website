@@ -1,4 +1,13 @@
-import { Component, OnInit, computed, input, signal } from '@angular/core';
+import {
+  Component,
+  Inject,
+  OnInit,
+  PLATFORM_ID,
+  computed,
+  input,
+  signal,
+} from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { Project, previewUrl } from '../../../core/models/project.model';
 
 @Component({
@@ -305,6 +314,12 @@ export class ProjectCardComponent implements OnInit {
 
   preview = computed(() => this.currentPreview());
 
+  private readonly isBrowser: boolean;
+
+  constructor(@Inject(PLATFORM_ID) platformId: object) {
+    this.isBrowser = isPlatformBrowser(platformId);
+  }
+
   ngOnInit(): void {
     const p = this.project();
 
@@ -316,9 +331,9 @@ export class ProjectCardComponent implements OnInit {
     // Step 1: Show static preview immediately (instant)
     this.currentPreview.set(p.staticPreview);
 
-    // Step 2: Preload the live Microlink screenshot in background.
-    // When it's ready (could take 5-15s on first request), swap it in.
-    if (p.liveUrl) {
+    // Step 2: Preload the live Microlink screenshot in background — browser only.
+    // SSR/prerender renders without `Image`, so guard with isPlatformBrowser.
+    if (this.isBrowser && p.liveUrl) {
       const liveUrl = previewUrl(p.liveUrl);
       if (liveUrl) {
         const img = new Image();
