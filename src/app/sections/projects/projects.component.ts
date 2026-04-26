@@ -266,13 +266,19 @@ interface FilterChip {
 export class ProjectsComponent {
   readonly totalCount = PROJECTS.length;
 
-  readonly filterChips: FilterChip[] = [
-    { value: 'all', label: 'ALL' },
-    ...Object.entries(CATEGORY_LABELS).map(([value, label]) => ({
-      value: value as ProjectCategory,
-      label: label.toUpperCase(),
-    })),
-  ];
+  /** Only show category chips that actually have at least one project. */
+  readonly filterChips: FilterChip[] = (() => {
+    const usedCategories = new Set(PROJECTS.map((p) => p.category));
+    return [
+      { value: 'all' as FilterValue, label: 'ALL' },
+      ...Object.entries(CATEGORY_LABELS)
+        .filter(([value]) => usedCategories.has(value as ProjectCategory))
+        .map(([value, label]) => ({
+          value: value as ProjectCategory,
+          label: label.toUpperCase(),
+        })),
+    ];
+  })();
 
   activeFilter = signal<FilterValue>('all');
 
