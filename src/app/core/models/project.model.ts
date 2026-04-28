@@ -103,7 +103,8 @@ export type ProjectTheme =
   | 'enterprise-gantt'
   | 'cv-frame'
   | 'mobile-chat'
-  | 'service-stamp';
+  | 'service-stamp'
+  | 'cockpit-ops';
 
 export interface ProjectSpecimen {
   kind: ProjectTheme;
@@ -394,6 +395,52 @@ export const PROJECTS: Project[] = [
         shipped: 'Production-ready system',
         days: '14',
         guarantee: 'Deployed · Observable · Tested',
+      },
+    },
+  },
+  {
+    id: 'mcu-cockpit',
+    title: 'MCU Cockpit',
+    tagline: 'Mission control for tickets, deploys, agents, and logs',
+    description:
+      'A unified operations console wired into GitHub for the entire project lifecycle — triage tickets, dispatch autonomous coding agents to tackle them, run E2E suites on demand, push deploys, and tail production logs from a single cockpit. Replaces a dozen browser tabs with one console built around the way I actually ship work.',
+    techStack: [
+      { name: 'TypeScript', category: 'frontend' },
+      { name: 'Angular', category: 'frontend' },
+      { name: 'Node.js', category: 'backend' },
+      { name: 'GitHub API', category: 'api' },
+      { name: 'Webhooks', category: 'api' },
+      { name: 'Claude Agent SDK', category: 'api' },
+      { name: 'Playwright', category: 'infra' },
+      { name: 'Docker', category: 'infra' },
+    ],
+    features: [
+      'GitHub-integrated ticket board with one-click triage and assignment',
+      'Dispatches autonomous coding agents to tackle tickets end-to-end',
+      'On-demand E2E test runs with pass/fail breakdown and replay',
+      'Push-button deploys with live build pipeline and instant rollback',
+      'Streaming production log viewer with filter, search, and tailing',
+    ],
+    category: 'platform',
+    gradient: 'linear-gradient(135deg, #38bdf8, #818cf8)',
+    icon: '<rect x="3" y="4" width="18" height="14" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><polyline points="7 14 9 16 7 18"/><line x1="13" y1="18" x2="17" y2="18"/>',
+    theme: 'cockpit-ops',
+    accent: '#38bdf8',
+    previewCaption: 'fig. 8 — internal · ops command center',
+    specimen: {
+      kind: 'cockpit-ops',
+      data: {
+        tickets: '12 OPEN',
+        deploys: '3 RUNNING',
+        agents: '2 ACTIVE',
+        activity1: '#341 onboarding bug',
+        activity1State: 'AGENT',
+        activity2: 'deploy/main → prod',
+        activity2State: 'RUNNING',
+        activity3: 'e2e suite (24/24)',
+        activity3State: 'PASSED',
+        activity4: 'agent#1 → PR opened',
+        activity4State: 'REVIEW',
       },
     },
   },

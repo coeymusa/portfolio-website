@@ -220,6 +220,52 @@ import { Project, previewUrl } from '../../../core/models/project.model';
               </div>
             }
 
+            @case ('cockpit-ops') {
+              <div class="device device-cockpit">
+                <div class="cockpit-bar">
+                  <span class="cockpit-pulse"></span>
+                  <span class="cockpit-title">MCU COCKPIT</span>
+                  <span class="cockpit-status">OPS · LIVE</span>
+                </div>
+                <div class="cockpit-stats">
+                  <div class="cockpit-stat">
+                    <span class="stat-label">TICKETS</span>
+                    <span class="stat-value">{{ specimenStr('tickets') }}</span>
+                  </div>
+                  <div class="cockpit-stat">
+                    <span class="stat-label">DEPLOYS</span>
+                    <span class="stat-value">{{ specimenStr('deploys') }}</span>
+                  </div>
+                  <div class="cockpit-stat">
+                    <span class="stat-label">AGENTS</span>
+                    <span class="stat-value">{{ specimenStr('agents') }}</span>
+                  </div>
+                </div>
+                <div class="cockpit-feed">
+                  <div class="feed-row">
+                    <span class="feed-arrow">▸</span>
+                    <span class="feed-text">{{ specimenStr('activity1') }}</span>
+                    <span class="feed-state agent">{{ specimenStr('activity1State') }}</span>
+                  </div>
+                  <div class="feed-row">
+                    <span class="feed-arrow">▸</span>
+                    <span class="feed-text">{{ specimenStr('activity2') }}</span>
+                    <span class="feed-state running">{{ specimenStr('activity2State') }}</span>
+                  </div>
+                  <div class="feed-row">
+                    <span class="feed-arrow">▸</span>
+                    <span class="feed-text">{{ specimenStr('activity3') }}</span>
+                    <span class="feed-state ok">{{ specimenStr('activity3State') }}</span>
+                  </div>
+                  <div class="feed-row">
+                    <span class="feed-arrow">▸</span>
+                    <span class="feed-text">{{ specimenStr('activity4') }}</span>
+                    <span class="feed-state">{{ specimenStr('activity4State') }}</span>
+                  </div>
+                </div>
+              </div>
+            }
+
             @case ('service-stamp') {
               <div class="device device-stamp">
                 <div class="stamp-row">

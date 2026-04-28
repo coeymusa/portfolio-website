@@ -29,7 +29,7 @@ interface FilterChip {
             <em>The</em> Archive
           </h2>
           <p class="archive-subtitle">
-            Seven entries. Each shipped, each studied.
+            Eight entries. Each shipped, each studied.
             <span class="mono">[ {{ filteredCount() }} of {{ totalCount }} listed ]</span>
           </p>
         </header>

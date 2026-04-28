@@ -954,6 +954,143 @@
   border-top: 1px dashed var(--rule);
 }
 
+/* ============ THEME 9: COCKPIT OPS (MCU Cockpit) ============ */
+.device-cockpit {
+  font-family: var(--font-mono);
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0,
+      transparent 23px,
+      rgba(56, 189, 248, 0.04) 23px,
+      rgba(56, 189, 248, 0.04) 24px
+    );
+}
+
+.cockpit-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-bottom: 0.85rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.cockpit-pulse {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--theme-accent);
+  box-shadow: 0 0 12px var(--theme-accent);
+  animation: cockpitPulse 1.6s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+.cockpit-title {
+  font-size: 0.72rem;
+  letter-spacing: 0.25em;
+  color: var(--paper);
+  font-weight: 700;
+}
+
+.cockpit-status {
+  margin-left: auto;
+  font-size: 0.62rem;
+  letter-spacing: 0.2em;
+  color: var(--theme-accent);
+  font-weight: 600;
+}
+
+.cockpit-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin-bottom: 1rem;
+  border: 1px solid var(--rule);
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.cockpit-stat {
+  padding: 0.7rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  border-right: 1px solid var(--rule);
+
+  &:last-child { border-right: none; }
+}
+
+.stat-label {
+  font-size: 0.55rem;
+  letter-spacing: 0.25em;
+  color: var(--text-faint);
+}
+
+.stat-value {
+  font-size: 0.82rem;
+  color: var(--theme-accent);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.cockpit-feed {
+  display: flex;
+  flex-direction: column;
+}
+
+.feed-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.65rem;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px dashed var(--rule);
+  font-size: 0.75rem;
+
+  &:last-child { border-bottom: none; }
+}
+
+.feed-arrow {
+  color: var(--theme-accent);
+  font-size: 0.7rem;
+  line-height: 1;
+}
+
+.feed-text {
+  color: var(--text);
+  letter-spacing: 0.02em;
+  font-size: 0.78rem;
+}
+
+.feed-state {
+  font-size: 0.58rem;
+  letter-spacing: 0.2em;
+  padding: 0.18rem 0.5rem;
+  border: 1px solid var(--rule-light);
+  color: var(--text-mute);
+  font-weight: 700;
+  white-space: nowrap;
+
+  &.agent {
+    color: var(--theme-accent);
+    border-color: var(--theme-accent);
+  }
+
+  &.running {
+    color: #fbbf24;
+    border-color: #fbbf24;
+    animation: blink 1.4s step-end infinite;
+  }
+
+  &.ok {
+    color: #4ade80;
+    border-color: #4ade80;
+  }
+}
+
+@keyframes cockpitPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
 /* ====== META GRID (shared) ====== */
 .meta-grid {
   display: grid;
@@ -1240,5 +1377,24 @@
   }
   .entry-title {
     font-size: 1.65rem;
+  }
+  .cockpit-stats {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+  .cockpit-stat {
+    padding: 0.5rem 0.5rem;
+  }
+  .stat-label { font-size: 0.5rem; letter-spacing: 0.2em; }
+  .stat-value { font-size: 0.7rem; }
+  .feed-row {
+    grid-template-columns: auto 1fr;
+    gap: 0.4rem;
+  }
+  .feed-text { font-size: 0.7rem; }
+  .feed-state {
+    grid-column: 2 / -1;
+    justify-self: end;
+    font-size: 0.5rem;
+    padding: 0.12rem 0.4rem;
   }
 }
