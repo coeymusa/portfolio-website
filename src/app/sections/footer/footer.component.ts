@@ -18,7 +18,7 @@ import { Component, ChangeDetectionStrategy } from '@angular/core';
 
         <div class="footer-meta">
           <span class="mono">© MMXXVI · CMUSA</span>
-          <span class="mono mono-faint">VOL. I · FOLIO 1</span>
+          <span class="mono mono-faint">FOLIO 1</span>
         </div>
       </div>
     </footer>

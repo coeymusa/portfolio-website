@@ -11,7 +11,7 @@ import { RouterLink } from '@angular/router';
       <div class="container">
         <header class="masthead">
           <div class="masthead-rule">
-            <span class="rule-tag">VOL. I — CHAPTER TWO</span>
+            <span class="rule-tag">CHAPTER TWO</span>
           </div>
           <h2 class="archive-title">
             <em>About the</em> Author

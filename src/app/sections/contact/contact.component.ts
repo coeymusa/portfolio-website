@@ -17,7 +17,7 @@ interface ContactLink {
       <div class="container">
         <header class="masthead">
           <div class="masthead-rule">
-            <span class="rule-tag">VOL. I — CHAPTER THREE</span>
+            <span class="rule-tag">CHAPTER THREE</span>
           </div>
           <h2 class="archive-title">
             <em>Initiate</em> Correspondence

@@ -10,9 +10,9 @@ import { DiceRollerComponent } from './dice-roller/dice-roller.component';
     <section id="hero" class="hero">
       <!-- Top folio bar -->
       <header class="folio-top">
-        <span class="folio-mono">CODEX · VOL. I</span>
+        <span class="folio-mono">CODEX</span>
         <span class="folio-rule"></span>
-        <span class="folio-mono">EST. MMXVII</span>
+        <span class="folio-mono">ZÜRICH</span>
       </header>
 
       <!-- Asymmetric main content -->
@@ -49,10 +49,10 @@ import { DiceRollerComponent } from './dice-roller/dice-roller.component';
           <div class="abstract-rule"><span>ABSTRACT</span></div>
 
           <p class="abstract">
-            A curated archive of seven entries — AI-driven
+            A curated archive of eight entries — AI-driven
             <em>SaaS platforms</em>, fintech systems, machine-learning pipelines,
-            and consultancy services. Built solo. Shipped in production.
-            Collected, here, in one place.
+            developer tooling, and consultancy services. Built solo.
+            Shipped in production. Collected, here, in one place.
           </p>
 
           <div class="cta-row">

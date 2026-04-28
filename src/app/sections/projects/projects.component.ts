@@ -23,7 +23,7 @@ interface FilterChip {
         <!-- Section masthead -->
         <header class="masthead">
           <div class="masthead-rule">
-            <span class="rule-tag">VOL. I — CHAPTER ONE</span>
+            <span class="rule-tag">CHAPTER ONE</span>
           </div>
           <h2 class="archive-title">
             <em>The</em> Archive

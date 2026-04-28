@@ -22,7 +22,7 @@ import { RouterLink } from '@angular/router';
         <!-- Masthead -->
         <header class="masthead">
           <div class="masthead-rule">
-            <span class="rule-tag">VOL. I — APPENDIX</span>
+            <span class="rule-tag">APPENDIX</span>
           </div>
           <h1 class="cv-title">
             <em>The</em> Author<span class="period">.</span>
@@ -108,11 +108,11 @@ import { RouterLink } from '@angular/router';
           <h2 class="section-title">Recent Builds</h2>
 
           <p class="works-blurb">
-            Seven shipped projects spanning AI SaaS, fintech platforms,
-            ML pipelines, mobile apps, and consultancy services.
+            Eight shipped projects spanning AI SaaS, fintech platforms,
+            ML pipelines, mobile apps, developer tooling, and consultancy services.
             <a routerLink="/" class="works-link">
               <span class="works-arrow">→</span>
-              <span>see Vol. I — Chapter One for the live archive</span>
+              <span>see Chapter One for the live archive</span>
             </a>
           </p>
         </section>
