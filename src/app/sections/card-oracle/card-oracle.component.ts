@@ -121,7 +121,7 @@ import { TeleportService } from '../../core/services/teleport.service';
             } @else if (phase() === 'selecting') {
               <span class="hint">
                 <span class="hint-dot"></span>
-                drag any card to draw it
+                click or drag a card to draw it
               </span>
               <button class="cta cta-ghost" (click)="reshuffle()">
                 <span>reshuffle</span>
@@ -673,9 +673,6 @@ export class CardOracleComponent {
     pointerId: number;
   } | null = null;
 
-  /** Distance (px) the pointer must travel before pointerup commits a draw. */
-  private static readonly DRAG_COMMIT_DISTANCE = 80;
-
   readonly isDrawingOrRevealed = computed(
     () => this.phase() === 'drawing' || this.phase() === 'revealed',
   );
@@ -685,7 +682,7 @@ export class CardOracleComponent {
     switch (this.phase()) {
       case 'idle':       return 'cut the deck';
       case 'shuffling':  return 'shuffling';
-      case 'selecting':  return 'drag a card to draw';
+      case 'selecting':  return 'click or drag a card';
       case 'drawing':    return 'drawing';
       case 'revealed':   return 'arcanum drawn';
     }
@@ -697,7 +694,7 @@ export class CardOracleComponent {
     switch (this.phase()) {
       case 'idle':      return 'awaiting cut';
       case 'shuffling': return 'shuffling';
-      case 'selecting': return 'pick one · drag it out';
+      case 'selecting': return 'pick one · click or drag';
       case 'drawing':   return 'drawing';
       case 'revealed':
         return idx >= 0 ? `arcanum ${this.romans[idx]} drawn` : 'drawn';
@@ -805,9 +802,6 @@ export class CardOracleComponent {
   onCardPointerUp(e: PointerEvent, i: number): void {
     if (!this.dragState || this.dragState.cardIdx !== i) return;
     const card = e.currentTarget as HTMLElement;
-    const dx = e.clientX - this.dragState.startX;
-    const dy = e.clientY - this.dragState.startY;
-    const distance = Math.hypot(dx, dy);
 
     if (card.hasPointerCapture(e.pointerId)) {
       card.releasePointerCapture(e.pointerId);
@@ -816,18 +810,11 @@ export class CardOracleComponent {
     this.dragState = null;
     this.draggingIdx.set(-1);
 
-    if (distance >= CardOracleComponent.DRAG_COMMIT_DISTANCE) {
-      void this.commitDraw(i, card);
-    } else {
-      this.snapBack(card, i);
-    }
-  }
-
-  private snapBack(card: HTMLElement, i: number): void {
-    card.animate(
-      [{}, { transform: this.fanTransforms[i] }],
-      { duration: 280, easing: 'cubic-bezier(0.4, 0, 0.2, 1)', fill: 'forwards' },
-    );
+    // Click or drag — either way, this is the chosen card. The commit
+    // animation starts from the card's current inline transform (which is
+    // either the fan position for a click, or the dragged position for a
+    // drag), so it lifts off cleanly from wherever it is.
+    void this.commitDraw(i, card);
   }
 
   private async commitDraw(i: number, card: HTMLElement): Promise<void> {
