@@ -56,30 +56,34 @@ import { Router, RouterLink } from '@angular/router';
           <span class="hamburger-line" [class.open]="menuOpen()"></span>
         </button>
       </div>
-
-      <!-- Always rendered, shown via .is-open. Avoids the structural
-           re-mount that some mobile browsers raced against the click. -->
-      <div class="mobile-overlay"
-           [class.is-open]="menuOpen()"
-           (click)="closeMenu()">
-        <div class="mobile-menu" (click)="$event.stopPropagation()">
-          @for (link of navLinks; track link.id; let i = $index) {
-            <a
-              class="mobile-link"
-              [class.active]="activeSection() === link.id"
-              (click)="scrollTo(link.id); closeMenu()"
-            >
-              <span class="link-num">{{ pad(i + 1) }}</span>
-              {{ link.label }}
-            </a>
-          }
-          <a class="mobile-link" routerLink="/cv" (click)="closeMenu()">
-            <span class="link-num">04</span>
-            CV
-          </a>
-        </div>
-      </div>
     </nav>
+
+    <!-- IMPORTANT: must live outside <nav>. The .nav element has
+         backdrop-filter, which makes IT the containing block for fixed-
+         position descendants — putting the overlay inside collapsed it
+         to the nav's own height (88px desktop / 72px mobile), so
+         "inset: 88px 0 0 0" → height 0 and the menu was invisible.
+         As a sibling of <nav>, position:fixed resolves to the viewport. -->
+    <div class="mobile-overlay"
+         [class.is-open]="menuOpen()"
+         (click)="closeMenu()">
+      <div class="mobile-menu" (click)="$event.stopPropagation()">
+        @for (link of navLinks; track link.id; let i = $index) {
+          <a
+            class="mobile-link"
+            [class.active]="activeSection() === link.id"
+            (click)="scrollTo(link.id); closeMenu()"
+          >
+            <span class="link-num">{{ pad(i + 1) }}</span>
+            {{ link.label }}
+          </a>
+        }
+        <a class="mobile-link" routerLink="/cv" (click)="closeMenu()">
+          <span class="link-num">04</span>
+          CV
+        </a>
+      </div>
+    </div>
   `,
   styles: `
     :host {
