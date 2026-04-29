@@ -906,14 +906,18 @@ export class CardOracleComponent {
   // ============== animation phases ==============
 
   private computeFanTransforms(n: number): string[] {
-    const arcDeg = 90;
-    const radius = 240;
+    // Scale the fan to the viewport so it doesn't clip on phones / tablets.
+    const w = typeof window !== 'undefined' ? window.innerWidth : 1280;
+    const radius = w < 640 ? 105 : w < 1024 ? 180 : 240;
+    const arcDeg = w < 640 ? 70  : w < 1024 ? 80  : 90;
+    const dyFactor = radius * 0.29; // keeps the curve's steepness consistent
+
     // Transform per slot in fan order — slot 0 leftmost, slot n−1 rightmost.
     const slotTransforms = Array.from({ length: n }, (_, slot) => {
       const t = (slot / (n - 1)) - 0.5;
       const angle = t * arcDeg;
       const dx = Math.sin((angle * Math.PI) / 180) * radius;
-      const dy = -Math.cos((angle * Math.PI) / 180) * 70 + 70;
+      const dy = -Math.cos((angle * Math.PI) / 180) * dyFactor + dyFactor;
       const z = 30 + slot * 2;
       return `translate3d(${dx}px, ${dy}px, ${z}px) rotate(${angle}deg)`;
     });
