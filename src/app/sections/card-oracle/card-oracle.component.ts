@@ -751,10 +751,10 @@ const QUEEN_OF_HEARTS_SVG = `
       .numeral-letter { font-size: 1rem; }
       .numeral-suit { font-size: 0.72rem; }
 
-      /* Reserve vertical space for the upper-and-lower rows of fanned
-         cards (±75 px from the deck origin) plus the tap-to-cut hint. */
-      .deck-wrap { min-height: 420px; padding-bottom: 0; }
-      .deck.idle::after { bottom: -90px; }
+      /* Reserve vertical space for the tossed fan (±35 px jitter on each
+         card) plus the tap-to-cut hint sitting underneath. */
+      .deck-wrap { min-height: 360px; padding-bottom: 0; }
+      .deck.idle::after { bottom: -75px; }
     }
   `],
 })
@@ -1003,16 +1003,9 @@ export class CardOracleComponent {
     // Scale the fan to the viewport so it doesn't clip on phones / tablets.
     const w = typeof window !== 'undefined' ? window.innerWidth : 1280;
     const isMobile = w < 640;
-    const radius = isMobile ? 88 : w < 1024 ? 180 : 240;
-    const arcDeg = isMobile ? 52 : w < 1024 ? 80  : 90;
+    const radius = isMobile ? 95 : w < 1024 ? 180 : 240;
+    const arcDeg = isMobile ? 64 : w < 1024 ? 80 : 90;
     const dyFactor = radius * 0.29; // keeps the curve's steepness consistent
-
-    // On mobile the horizontal arc alone is too cramped — cards pile on
-    // top of each other in a thin strip. We split the fan into two rows
-    // (even slots float up, odd slots drop down) so each card's hit-target
-    // is clearly distinguishable and the layout uses vertical space too.
-    const rowOffset = isMobile ? 95 : 0;
-    const tilt = isMobile ? 6 : 0;  // small extra rotation per row for character
 
     // Transform per slot in fan order — slot 0 leftmost, slot n−1 rightmost.
     const slotTransforms = Array.from({ length: n }, (_, slot) => {
@@ -1020,18 +1013,21 @@ export class CardOracleComponent {
       const angle = t * arcDeg;
       const dx = Math.sin((angle * Math.PI) / 180) * radius;
       let dy = -Math.cos((angle * Math.PI) / 180) * dyFactor + dyFactor;
-
-      // Alternate vertical row + a touch of extra rotation so the up
-      // cards lean one way and the down cards the other.
       let extraRot = 0;
+      let dxOffset = 0;
+
+      // On mobile the horizontal arc alone is too cramped, so add per-slot
+      // pseudo-random jitter — Y, rotation, and a touch of X — so the
+      // fan reads as a "tossed across the table" spread (matching desktop's
+      // tightly-packed mixing) rather than a strict alternating grid.
       if (isMobile) {
-        const isUpper = slot % 2 === 0;
-        dy += isUpper ? -rowOffset : rowOffset;
-        extraRot = isUpper ? -tilt : tilt;
+        dy += (Math.random() - 0.5) * 70;        // ±35
+        extraRot = (Math.random() - 0.5) * 14;   // ±7°
+        dxOffset = (Math.random() - 0.5) * 16;   // ±8
       }
 
       const z = 30 + slot * 2;
-      return `translate3d(${dx}px, ${dy}px, ${z}px) rotate(${angle + extraRot}deg)`;
+      return `translate3d(${dx + dxOffset}px, ${dy}px, ${z}px) rotate(${angle + extraRot}deg)`;
     });
 
     // Fisher–Yates: each card gets assigned to a random fan slot, so
