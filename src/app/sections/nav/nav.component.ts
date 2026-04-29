@@ -44,8 +44,9 @@ import { Router, RouterLink } from '@angular/router';
         </div>
 
         <button
+          type="button"
           class="hamburger"
-          (click)="menuOpen.set(!menuOpen())"
+          (click)="toggleMenu()"
           [attr.aria-expanded]="menuOpen()"
           aria-label="Toggle navigation menu"
         >
@@ -55,26 +56,28 @@ import { Router, RouterLink } from '@angular/router';
         </button>
       </div>
 
-      @if (menuOpen()) {
-        <div class="mobile-overlay" (click)="menuOpen.set(false)">
-          <div class="mobile-menu" (click)="$event.stopPropagation()">
-            @for (link of navLinks; track link.id; let i = $index) {
-              <a
-                class="mobile-link"
-                [class.active]="activeSection() === link.id"
-                (click)="scrollTo(link.id); menuOpen.set(false)"
-              >
-                <span class="link-num">{{ pad(i + 1) }}</span>
-                {{ link.label }}
-              </a>
-            }
-            <a class="mobile-link" routerLink="/cv" (click)="menuOpen.set(false)">
-              <span class="link-num">04</span>
-              CV
+      <!-- Always rendered, shown via .is-open. Avoids the structural
+           re-mount that some mobile browsers raced against the click. -->
+      <div class="mobile-overlay"
+           [class.is-open]="menuOpen()"
+           (click)="closeMenu()">
+        <div class="mobile-menu" (click)="$event.stopPropagation()">
+          @for (link of navLinks; track link.id; let i = $index) {
+            <a
+              class="mobile-link"
+              [class.active]="activeSection() === link.id"
+              (click)="scrollTo(link.id); closeMenu()"
+            >
+              <span class="link-num">{{ pad(i + 1) }}</span>
+              {{ link.label }}
             </a>
-          </div>
+          }
+          <a class="mobile-link" routerLink="/cv" (click)="closeMenu()">
+            <span class="link-num">04</span>
+            CV
+          </a>
         </div>
-      }
+      </div>
     </nav>
   `,
   styles: `
@@ -248,9 +251,22 @@ import { Router, RouterLink } from '@angular/router';
       position: fixed;
       inset: 88px 0 0 0;
       background: var(--ink);
-      animation: fadeIn 0.25s ease;
-      z-index: 99;
+      z-index: 110; /* above .nav-inner so the open menu always wins */
       overflow-y: auto;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition:
+        opacity 0.25s ease,
+        visibility 0s linear 0.25s;
+    }
+    .mobile-overlay.is-open {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transition:
+        opacity 0.25s ease,
+        visibility 0s;
     }
 
     .mobile-overlay::before {
@@ -340,6 +356,14 @@ export class NavComponent implements AfterViewInit, OnDestroy {
 
   pad(n: number): string {
     return n.toString().padStart(2, '0');
+  }
+
+  toggleMenu(): void {
+    this.menuOpen.set(!this.menuOpen());
+  }
+
+  closeMenu(): void {
+    this.menuOpen.set(false);
   }
 
   scrollToTop(): void {
