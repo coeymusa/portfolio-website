@@ -751,10 +751,10 @@ const QUEEN_OF_HEARTS_SVG = `
       .numeral-letter { font-size: 1rem; }
       .numeral-suit { font-size: 0.72rem; }
 
-      /* Reserve vertical space for the tossed fan (±35 px jitter on each
-         card) plus the tap-to-cut hint sitting underneath. */
-      .deck-wrap { min-height: 360px; padding-bottom: 0; }
-      .deck.idle::after { bottom: -75px; }
+      /* Reserve vertical space for the tossed fan (±55 px Y jitter +
+         168 px card height) plus the tap-to-cut hint underneath. */
+      .deck-wrap { min-height: 400px; padding-bottom: 0; }
+      .deck.idle::after { bottom: -90px; }
     }
   `],
 })
@@ -1003,8 +1003,11 @@ export class CardOracleComponent {
     // Scale the fan to the viewport so it doesn't clip on phones / tablets.
     const w = typeof window !== 'undefined' ? window.innerWidth : 1280;
     const isMobile = w < 640;
-    const radius = isMobile ? 95 : w < 1024 ? 180 : 240;
-    const arcDeg = isMobile ? 64 : w < 1024 ? 80 : 90;
+    // On mobile, scale the radius to use as much of the available width
+    // as we can — the fan was reading as a tight bundle before.
+    const mobileRadius = Math.max(95, Math.min(135, (w - 200) / 2));
+    const radius = isMobile ? mobileRadius : w < 1024 ? 180 : 240;
+    const arcDeg = isMobile ? 92 : w < 1024 ? 80 : 90;
     const dyFactor = radius * 0.29; // keeps the curve's steepness consistent
 
     // Transform per slot in fan order — slot 0 leftmost, slot n−1 rightmost.
@@ -1019,11 +1022,11 @@ export class CardOracleComponent {
       // On mobile the horizontal arc alone is too cramped, so add per-slot
       // pseudo-random jitter — Y, rotation, and a touch of X — so the
       // fan reads as a "tossed across the table" spread (matching desktop's
-      // tightly-packed mixing) rather than a strict alternating grid.
+      // tightly-packed mixing) rather than a contained bundle.
       if (isMobile) {
-        dy += (Math.random() - 0.5) * 70;        // ±35
-        extraRot = (Math.random() - 0.5) * 14;   // ±7°
-        dxOffset = (Math.random() - 0.5) * 16;   // ±8
+        dy += (Math.random() - 0.5) * 110;       // ±55
+        extraRot = (Math.random() - 0.5) * 22;   // ±11°
+        dxOffset = (Math.random() - 0.5) * 38;   // ±19
       }
 
       const z = 30 + slot * 2;
