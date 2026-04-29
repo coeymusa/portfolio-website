@@ -46,7 +46,8 @@ import { Router, RouterLink } from '@angular/router';
         <button
           type="button"
           class="hamburger"
-          (click)="toggleMenu()"
+          (pointerup)="onHamburgerTap($event)"
+          (click)="onHamburgerTap($event)"
           [attr.aria-expanded]="menuOpen()"
           aria-label="Toggle navigation menu"
         >
@@ -220,7 +221,11 @@ import { Router, RouterLink } from '@angular/router';
       /* Strip iOS's 300ms tap delay and reserve the gesture for tap. */
       touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
+      /* Ensure nothing inside the nav can ever sit on top of the button. */
+      position: relative;
+      z-index: 5;
     }
+    .hamburger > * { pointer-events: none; } /* taps land on the button itself */
     .hamburger:active { background: rgba(255, 107, 53, 0.08); }
 
     .hamburger:focus-visible {
@@ -356,6 +361,21 @@ export class NavComponent implements AfterViewInit, OnDestroy {
 
   pad(n: number): string {
     return n.toString().padStart(2, '0');
+  }
+
+  /** Debounce so the pointerup + click pair doesn't toggle twice. */
+  private lastTap = 0;
+
+  /** Bound to both (pointerup) and (click) on the hamburger. Whichever
+   *  fires first wins; the other is debounced. Some mobile WebViews stall
+   *  click events but always deliver pointerup, so we need the redundancy. */
+  onHamburgerTap(event: Event): void {
+    const now =
+      typeof performance !== 'undefined' ? performance.now() : Date.now();
+    if (now - this.lastTap < 300) return;
+    this.lastTap = now;
+    event.stopPropagation?.();
+    this.menuOpen.set(!this.menuOpen());
   }
 
   toggleMenu(): void {
