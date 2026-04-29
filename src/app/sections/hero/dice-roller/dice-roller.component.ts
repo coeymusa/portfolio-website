@@ -473,6 +473,7 @@ export class DiceRollerComponent {
       faceNumeral: this.numerals[face - 1] ?? String(face),
       sourceRect: button.getBoundingClientRect(),
       accent: picked.accent,
+      ghostKind: 'face',
     });
 
     // Reset our local state once the cinematic finishes plus a small buffer,

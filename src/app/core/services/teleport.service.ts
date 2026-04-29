@@ -1,18 +1,23 @@
 import { Injectable, signal } from '@angular/core';
 import { Project } from '../models/project.model';
 
-/** A single dice-driven teleport request from the oracle to a project entry. */
+/** Which kind of "spectral object" rises and plummets through the portal. */
+export type GhostKind = 'face' | 'card';
+
+/** A single oracle-driven teleport request from a chooser to a project entry. */
 export interface TeleportRequest {
   /** The project to teleport to. */
   project: Project;
   /** 0-based index of the project in the PROJECTS array. */
   projectIndex: number;
-  /** Roman numeral I–VIII for the dice face the rolled landed on. */
+  /** Roman numeral I–VIII for the rolled / drawn entry. */
   faceNumeral: string;
-  /** Bounding rect of the source dice (viewport coords) at trigger time. */
+  /** Bounding rect of the source object (dice / card) at trigger time. */
   sourceRect: DOMRect;
   /** Project's themed accent colour, used to tint the teleport pit. */
   accent: string;
+  /** Triangular dice face vs rectangular tarot card. */
+  ghostKind: GhostKind;
 }
 
 /**

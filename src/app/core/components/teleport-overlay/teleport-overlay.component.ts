@@ -9,7 +9,9 @@ import {
   viewChild,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import {
+  GhostKind,
   TeleportRequest,
   TeleportService,
 } from '../../services/teleport.service';
@@ -43,9 +45,22 @@ import {
         <span class="portal-core"></span>
       </div>
 
-      <div class="ghost" #ghost
+      <!-- Spectral ghost — either the rolled triangular face or the drawn tarot card. -->
+      <div class="ghost"
+           #ghost
+           [class.ghost-face]="kind() === 'face'"
+           [class.ghost-card]="kind() === 'card'"
            [style.--accent]="accent()">
-        <span class="ghost-numeral">{{ numeral() }}</span>
+        @if (kind() === 'face') {
+          <span class="ghost-numeral">{{ numeral() }}</span>
+        } @else {
+          <div class="card-frame">
+            <span class="card-numeral nw">{{ numeral() }}</span>
+            <div class="card-icon" [innerHTML]="iconSvg()"></div>
+            <span class="card-title">{{ title() }}</span>
+            <span class="card-numeral se">{{ numeral() }}</span>
+          </div>
+        }
       </div>
 
       <div class="flash" #flash></div>
@@ -139,15 +154,25 @@ import {
       to { transform: rotate(360deg); }
     }
 
-    /* ---------------- ghost (rising face) ---------------- */
+    /* ---------------- ghost (rising form) ---------------- */
     .ghost {
       --accent: var(--ember, #ff6b35);
 
       position: fixed;
+      left: 0;
+      top: 0;
+
+      opacity: 0;
+      transform: translate(0, 0) scale(0.5);
+      will-change: transform, opacity;
+    }
+
+    /* Triangular dice face variant */
+    .ghost.ghost-face {
       width: 140px;
       height: 121px;
-      left: -70px;
-      top: -60px;
+      margin-left: -70px;
+      margin-top: -60px;
 
       box-sizing: border-box;
       padding-top: 42px;
@@ -164,10 +189,6 @@ import {
         inset 0 0 0 1px rgba(255, 255, 255, 0.3),
         inset 4px 4px 14px rgba(0, 0, 0, 0.25);
       clip-path: polygon(50% 1%, 99% 99%, 1% 99%);
-
-      opacity: 0;
-      transform: translate(0, 0) scale(0.5);
-      will-change: transform, opacity;
     }
 
     .ghost-numeral {
@@ -179,6 +200,91 @@ import {
       letter-spacing: -0.05em;
       color: var(--ink, #0a0907);
       text-shadow: 0 0 10px rgba(255, 240, 200, 0.55);
+    }
+
+    /* Rectangular tarot card variant */
+    .ghost.ghost-card {
+      width: 200px;
+      height: 280px;
+      margin-left: -100px;
+      margin-top: -140px;
+      padding: 12px;
+      box-sizing: border-box;
+
+      background: linear-gradient(165deg, #f4ecd8 0%, #e0d5b8 100%);
+      border: 1px solid var(--accent);
+      box-shadow:
+        0 0 30px rgba(255, 200, 130, 0.55),
+        0 0 60px rgba(255, 107, 53, 0.35),
+        0 18px 36px rgba(0, 0, 0, 0.5),
+        inset 0 0 0 4px rgba(244, 236, 216, 0.6),
+        inset 0 0 0 5px var(--accent);
+    }
+
+    .ghost.ghost-card .card-frame {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border: 1px solid rgba(0, 0, 0, 0.18);
+      padding: 0.5rem 0.75rem;
+      box-sizing: border-box;
+
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      align-items: center;
+      justify-items: center;
+      gap: 0.4rem;
+    }
+
+    .ghost.ghost-card .card-numeral {
+      position: absolute;
+      font-family: var(--font-display, Georgia, serif);
+      font-variation-settings: 'opsz' 144, 'WONK' 1;
+      font-style: italic;
+      font-weight: 400;
+      font-size: 1.3rem;
+      color: var(--accent);
+      letter-spacing: -0.03em;
+      line-height: 1;
+    }
+    .ghost.ghost-card .card-numeral.nw {
+      top: 6px; left: 10px;
+    }
+    .ghost.ghost-card .card-numeral.se {
+      bottom: 6px; right: 10px;
+      transform: rotate(180deg);
+    }
+
+    .ghost.ghost-card .card-icon {
+      width: 80px;
+      height: 80px;
+      color: var(--accent);
+      grid-row: 2 / 3;
+      align-self: center;
+      filter: drop-shadow(0 0 8px rgba(255, 107, 53, 0.4));
+    }
+    .ghost.ghost-card .card-icon ::ng-deep svg {
+      width: 100%;
+      height: 100%;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .ghost.ghost-card .card-title {
+      grid-row: 3 / 4;
+      font-family: var(--font-display, Georgia, serif);
+      font-style: italic;
+      font-size: 0.78rem;
+      color: var(--ink, #0a0907);
+      text-align: center;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      max-width: 90%;
+      line-height: 1.2;
+      margin-bottom: 0.4rem;
     }
 
     /* ---------------- flash ---------------- */
@@ -209,11 +315,15 @@ import {
 export class TeleportOverlayComponent {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly teleport = inject(TeleportService);
+  private readonly sanitizer = inject(DomSanitizer);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
 
   readonly active = signal(false);
   readonly numeral = signal('');
   readonly accent = signal('var(--ember)');
+  readonly kind = signal<GhostKind>('face');
+  readonly title = signal('');
+  readonly iconSvg = signal<SafeHtml>('');
 
   private readonly backdropRef = viewChild.required<ElementRef<HTMLElement>>('backdrop');
   private readonly portalRef = viewChild.required<ElementRef<HTMLElement>>('portal');
@@ -243,6 +353,11 @@ export class TeleportOverlayComponent {
 
     this.numeral.set(req.faceNumeral);
     this.accent.set(req.accent);
+    this.kind.set(req.ghostKind);
+    this.title.set(req.project.title);
+    this.iconSvg.set(this.sanitizer.bypassSecurityTrustHtml(
+      `<svg viewBox="0 0 24 24">${req.project.icon}</svg>`,
+    ));
     this.active.set(true);
 
     // Wait for the overlay to commit to the DOM with the new state.
