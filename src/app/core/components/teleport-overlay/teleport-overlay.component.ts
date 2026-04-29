@@ -259,76 +259,87 @@ export class TeleportOverlayComponent {
     const cy = window.innerHeight / 2;
     const portalY = cy + 130;
 
-    // -------- 1. Backdrop in + ghost rises (0 → 850 ms) --------
+    // -------- 1. Backdrop in + ghost rises (0 → 1300 ms) --------
     backdrop.animate(
       [{ opacity: 0 }, { opacity: 1 }],
-      { duration: 380, fill: 'forwards', easing: 'ease-out' },
+      { duration: 700, fill: 'forwards', easing: 'ease-out' },
     );
 
     ghost.animate(
       [
         { transform: `translate(${srcX}px, ${srcY}px) scale(0.45) rotate(-15deg)`, opacity: 0 },
-        { transform: `translate(${srcX}px, ${srcY - 18}px) scale(0.65) rotate(0deg)`, opacity: 1, offset: 0.16 },
-        { transform: `translate(${cx}px, ${cy - 35}px) scale(1.45) rotate(0deg)`, opacity: 1 },
+        { transform: `translate(${srcX}px, ${srcY - 24}px) scale(0.7) rotate(0deg)`, opacity: 1, offset: 0.18 },
+        { transform: `translate(${cx}px, ${cy - 35}px) scale(1.5) rotate(0deg)`, opacity: 1 },
       ],
-      { duration: 850, easing: 'cubic-bezier(0.2, 0.8, 0.3, 1.15)', fill: 'forwards' },
+      { duration: 1300, easing: 'cubic-bezier(0.2, 0.8, 0.3, 1.15)', fill: 'forwards' },
     );
-    await this.sleep(850);
+    await this.sleep(1300);
 
-    // -------- 2. Portal opens beneath (850 → 1180 ms) --------
+    // -------- 2. Hover at apex while portal opens (1300 → 1900 ms) --------
+    // Hold the ghost at the apex with a subtle hover so the eye registers it.
+    ghost.animate(
+      [
+        { transform: `translate(${cx}px, ${cy - 35}px) scale(1.5) rotate(0deg)` },
+        { transform: `translate(${cx}px, ${cy - 42}px) scale(1.55) rotate(2deg)`, offset: 0.5 },
+        { transform: `translate(${cx}px, ${cy - 35}px) scale(1.5) rotate(0deg)` },
+      ],
+      { duration: 600, easing: 'ease-in-out', fill: 'forwards' },
+    );
+
     portal.animate(
       [
         { transform: `translate(${cx}px, ${portalY}px) scale(0)`,    opacity: 0 },
-        { transform: `translate(${cx}px, ${portalY}px) scale(1.05)`, opacity: 1, offset: 0.7 },
+        { transform: `translate(${cx}px, ${portalY}px) scale(1.08)`, opacity: 1, offset: 0.7 },
         { transform: `translate(${cx}px, ${portalY}px) scale(1)`,    opacity: 1 },
       ],
-      { duration: 380, easing: 'cubic-bezier(0.34, 1.45, 0.64, 1)', fill: 'forwards' },
-    );
-    await this.sleep(220);
-
-    // -------- 3. Ghost plummets into portal (1070 → 1670 ms) --------
-    ghost.animate(
-      [
-        { transform: `translate(${cx}px, ${cy - 35}px) scale(1.45) rotate(0deg)`,   opacity: 1 },
-        { transform: `translate(${cx}px, ${cy + 60}px) scale(0.95) rotate(220deg)`, opacity: 1, offset: 0.45 },
-        { transform: `translate(${cx}px, ${portalY - 6}px) scale(0.04) rotate(820deg)`, opacity: 0 },
-      ],
-      { duration: 600, easing: 'cubic-bezier(0.55, 0.05, 0.85, 0.35)', fill: 'forwards' },
+      { duration: 600, easing: 'cubic-bezier(0.34, 1.45, 0.64, 1)', fill: 'forwards' },
     );
     await this.sleep(600);
 
-    // -------- 4. Portal collapses + flash + scroll (1670 → 2070 ms) --------
+    // -------- 3. Ghost plummets into portal (1900 → 2850 ms) --------
+    ghost.animate(
+      [
+        { transform: `translate(${cx}px, ${cy - 35}px) scale(1.5) rotate(0deg)`,    opacity: 1 },
+        { transform: `translate(${cx}px, ${cy + 30}px) scale(1.15) rotate(160deg)`, opacity: 1, offset: 0.35 },
+        { transform: `translate(${cx}px, ${cy + 90}px) scale(0.7) rotate(420deg)`,  opacity: 0.9, offset: 0.7 },
+        { transform: `translate(${cx}px, ${portalY - 6}px) scale(0.04) rotate(880deg)`, opacity: 0 },
+      ],
+      { duration: 950, easing: 'cubic-bezier(0.45, 0.05, 0.85, 0.4)', fill: 'forwards' },
+    );
+    await this.sleep(950);
+
+    // -------- 4. Portal collapses + flash + scroll (2850 → 3450 ms) --------
     portal.animate(
       [
         { transform: `translate(${cx}px, ${portalY}px) scale(1)`,    opacity: 1 },
-        { transform: `translate(${cx}px, ${portalY}px) scale(1.25)`, opacity: 0.4, offset: 0.4 },
+        { transform: `translate(${cx}px, ${portalY}px) scale(1.3)`,  opacity: 0.4, offset: 0.4 },
         { transform: `translate(${cx}px, ${portalY}px) scale(0)`,    opacity: 0 },
       ],
-      { duration: 380, easing: 'cubic-bezier(0.55, 0.1, 0.85, 0.4)', fill: 'forwards' },
+      { duration: 600, easing: 'cubic-bezier(0.55, 0.1, 0.85, 0.4)', fill: 'forwards' },
     );
 
     flash.animate(
       [
         { opacity: 0,    transform: 'translate(-50%, -50%) scale(0)' },
-        { opacity: 0.95, transform: 'translate(-50%, -50%) scale(0.55)', offset: 0.32 },
-        { opacity: 0,    transform: 'translate(-50%, -50%) scale(1.4)' },
+        { opacity: 0.95, transform: 'translate(-50%, -50%) scale(0.6)', offset: 0.32 },
+        { opacity: 0,    transform: 'translate(-50%, -50%) scale(1.5)' },
       ],
-      { duration: 620, fill: 'forwards', easing: 'cubic-bezier(0.4, 0, 0.2, 1)' },
+      { duration: 850, fill: 'forwards', easing: 'cubic-bezier(0.4, 0, 0.2, 1)' },
     );
 
-    await this.sleep(180);
+    await this.sleep(280);
 
     // Scroll under cover of the flash so the page jump is invisible.
     this.scrollToTarget(req);
 
-    await this.sleep(440);
+    await this.sleep(620);
 
-    // -------- 5. Backdrop fades out (~2070 → 2670 ms) --------
+    // -------- 5. Backdrop fades out (3450 → 4400 ms) --------
     backdrop.animate(
       [{ opacity: 1 }, { opacity: 0 }],
-      { duration: 600, fill: 'forwards', easing: 'ease-in' },
+      { duration: 950, fill: 'forwards', easing: 'ease-in' },
     );
-    await this.sleep(600);
+    await this.sleep(950);
 
     this.active.set(false);
     this.teleport.clear();

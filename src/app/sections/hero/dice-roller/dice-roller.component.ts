@@ -119,7 +119,7 @@ import { TeleportService } from '../../../core/services/teleport.service';
     .dice-button.teleporting {
       opacity: 0;
       transform: scale(0.7);
-      transition: opacity 0.55s ease-out, transform 0.55s ease-out;
+      transition: opacity 0.9s ease-out, transform 0.9s ease-out;
       pointer-events: none;
     }
     .dice-button:focus-visible { outline: none; }
@@ -355,6 +355,14 @@ export class DiceRollerComponent {
 
   private readonly diceButtonRef = viewChild<ElementRef<HTMLButtonElement>>('diceButton');
 
+  /** Pending auto-summon timer; cleared if the user re-rolls or summons manually. */
+  private autoSummonTimer: number | null = null;
+
+  /** Dramatic pause between dice settling and the teleport firing. */
+  private static readonly AUTO_SUMMON_PAUSE_MS = 1900;
+  /** Total runtime of the teleport cinematic (in TeleportOverlayComponent). */
+  private static readonly TELEPORT_DURATION_MS = 4700;
+
   /**
    * Per-face settling Euler angles (degrees). Applying
    *   rotateX(0) rotateY(ry) rotateZ(rz)
@@ -383,7 +391,9 @@ export class DiceRollerComponent {
   });
 
   roll(): void {
-    if (this.rolling()) return;
+    if (this.rolling() || this.teleporting()) return;
+    // Cancel any pending auto-summon from a previous roll.
+    this.cancelAutoSummon();
     this.rolling.set(true);
     this.result.set(null);
     this.landedFace.set(0);
@@ -407,7 +417,22 @@ export class DiceRollerComponent {
       this.result.set(picked);
       this.landedFace.set(facePicked + 1);
       this.rolling.set(false);
+
+      // Dramatic pause to register the result, then the oracle teleports
+      // them to the chosen entry. The user can short-circuit by clicking
+      // "visit entry" — both call jumpToResult() which is guarded.
+      this.autoSummonTimer = window.setTimeout(() => {
+        this.autoSummonTimer = null;
+        this.jumpToResult();
+      }, DiceRollerComponent.AUTO_SUMMON_PAUSE_MS);
     }, 1700);
+  }
+
+  private cancelAutoSummon(): void {
+    if (this.autoSummonTimer !== null) {
+      window.clearTimeout(this.autoSummonTimer);
+      this.autoSummonTimer = null;
+    }
   }
 
   /**
@@ -433,6 +458,7 @@ export class DiceRollerComponent {
     const idx = PROJECTS.findIndex((p) => p.id === picked.id);
     if (idx < 0) return;
 
+    this.cancelAutoSummon();
     this.teleporting.set(true);
 
     this.teleport.summon({
@@ -443,12 +469,12 @@ export class DiceRollerComponent {
       accent: picked.accent,
     });
 
-    // Reset our local state once the cinematic completes (~2.7s),
+    // Reset our local state once the cinematic finishes plus a small buffer,
     // so the next visit to the hero finds a fresh oracle.
     window.setTimeout(() => {
       this.teleporting.set(false);
       this.result.set(null);
       this.landedFace.set(0);
-    }, 3000);
+    }, DiceRollerComponent.TELEPORT_DURATION_MS + 600);
   }
 }
