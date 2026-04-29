@@ -171,12 +171,7 @@ button { font-family: inherit; cursor: pointer; }
    programmatic scrollIntoView() — used by the teleport overlay — leaves
    the project's title in view rather than tucked behind the nav bar. */
 app-project-card {
-  scroll-margin-top: 6.5rem;
-}
-@media (max-width: 640px) {
-  app-project-card {
-    scroll-margin-top: 5.25rem;
-  }
+  scroll-margin-top: 3rem;
 }
 
 /* Fate-glow — the impact ring when the dice arrives at a project card */
