@@ -762,7 +762,11 @@ export class CardOracleComponent {
   private readonly teleport = inject(TeleportService);
   private readonly sanitizer = inject(DomSanitizer);
 
-  readonly projects: Project[] = PROJECTS;
+  /** Deck excludes MCU Cockpit — internal-tooling entry shouldn't be the
+   *  random first-impression project for a viewer. The d8 still shows the
+   *  Cockpit face (the metaphor stays intact, the roll just never lands
+   *  there); the deck physically omits it. */
+  readonly projects: Project[] = PROJECTS.filter((p) => p.id !== 'mcu-cockpit');
   readonly romans = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII'];
 
   /** Pre-trusted SVG markup per project — computed once. */
@@ -1118,9 +1122,14 @@ export class CardOracleComponent {
     const project = this.projects[pickIdx];
     this.dispatched.set(true);
 
+    // pickIdx is the index in the local (filtered) deck. The teleport
+    // overlay's scroll target is the project's position in the rendered
+    // PROJECTS list — resolve via id so reordering doesn't mis-align.
+    const archiveIndex = PROJECTS.findIndex((p) => p.id === project.id);
+
     this.teleport.summon({
       project,
-      projectIndex: pickIdx,
+      projectIndex: archiveIndex >= 0 ? archiveIndex : pickIdx,
       faceNumeral: this.romans[pickIdx],
       sourceRect: card.getBoundingClientRect(),
       accent: project.accent,

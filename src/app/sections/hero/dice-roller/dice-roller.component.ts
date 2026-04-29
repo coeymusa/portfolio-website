@@ -409,7 +409,14 @@ export class DiceRollerComponent {
     this.result.set(null);
     this.landedFace.set(0);
 
-    const facePicked = Math.floor(Math.random() * this.projects.length);
+    // Hide MCU Cockpit from the random roll — first-time visitors
+    // shouldn't be teleported to the personal-tooling entry as their
+    // only project view. The d8 still SHOWS face VIII (so the metaphor
+    // and visual stay intact) but the roll never lands there.
+    const eligible = this.projects
+      .map((_, i) => i)
+      .filter((i) => this.projects[i].id !== 'mcu-cockpit');
+    const facePicked = eligible[Math.floor(Math.random() * eligible.length)];
     const picked = this.projects[facePicked];
     const target = this.settles[facePicked];
 
