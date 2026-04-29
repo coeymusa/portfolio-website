@@ -445,6 +445,14 @@ const QUEEN_OF_HEARTS_SVG = `
         drop-shadow(0 0 36px rgba(255, 107, 53, 0.3));
     }
 
+    /* Held highlight on the picked card while other cards fade away,
+       so a tap reads as "you picked THIS one" before the lift animation. */
+    .card.is-drawn {
+      filter:
+        drop-shadow(0 0 22px rgba(255, 107, 53, 0.7))
+        drop-shadow(0 0 44px rgba(255, 107, 53, 0.4));
+    }
+
     .card-face {
       position: absolute;
       inset: 0;
@@ -734,16 +742,19 @@ const QUEEN_OF_HEARTS_SVG = `
       }
       .exp-controls { flex-wrap: wrap; justify-content: center; }
 
-      .deck { width: 160px; height: 224px; }
-      .card { --card-w: 160px; --card-h: 224px; }
-      .card-icon { width: 64px; height: 64px; }
-      .card-title { font-size: 0.65rem; }
-      .numeral-letter { font-size: 1.1rem; }
-      .numeral-suit { font-size: 0.8rem; }
+      /* Smaller cards on phones — the two-row alternating fan needs the
+         room. 120×168 is still 5:7 so the tarot proportions stay. */
+      .deck { width: 120px; height: 168px; }
+      .card { --card-w: 120px; --card-h: 168px; }
+      .card-icon { width: 50px; height: 50px; }
+      .card-title { font-size: 0.55rem; }
+      .numeral-letter { font-size: 1rem; }
+      .numeral-suit { font-size: 0.72rem; }
 
-      /* The "tap to cut" affordance hangs below the deck — give it
-         breathing room so it doesn't collide with the controls. */
-      .deck-wrap { padding-bottom: 2.5rem; }
+      /* Reserve vertical space for the upper-and-lower rows of fanned
+         cards (±75 px from the deck origin) plus the tap-to-cut hint. */
+      .deck-wrap { min-height: 420px; padding-bottom: 0; }
+      .deck.idle::after { bottom: -90px; }
     }
   `],
 })
@@ -946,7 +957,8 @@ export class CardOracleComponent {
     }
 
     this.dragState = null;
-    this.draggingIdx.set(-1);
+    // Leave draggingIdx set for the moment — commitDraw clears it once
+    // the held-highlight beat is over, so the glow is continuous.
 
     // Click or drag — either way, this is the chosen card. The commit
     // animation starts from the card's current inline transform (which is
@@ -958,6 +970,13 @@ export class CardOracleComponent {
   private async commitDraw(i: number, card: HTMLElement): Promise<void> {
     this.drawnIndex.set(i);
     this.phase.set('drawing');
+
+    // Hold a beat on the picked card before the lift animation starts.
+    // .draw-active fades the other cards (0.5s); .is-drawn glows ember on
+    // the picked one. Without this pause a tap commit is too quick to read
+    // as "you picked THIS card" before it's already flying to centre.
+    await this.sleep(320);
+    this.draggingIdx.set(-1);
 
     // Animate card to centre, scale up, flip face-up. Starts from current
     // (dragged) inline transform — the {} keyframe captures it.
@@ -983,18 +1002,36 @@ export class CardOracleComponent {
   private computeFanTransforms(n: number): string[] {
     // Scale the fan to the viewport so it doesn't clip on phones / tablets.
     const w = typeof window !== 'undefined' ? window.innerWidth : 1280;
-    const radius = w < 640 ? 105 : w < 1024 ? 180 : 240;
-    const arcDeg = w < 640 ? 70  : w < 1024 ? 80  : 90;
+    const isMobile = w < 640;
+    const radius = isMobile ? 88 : w < 1024 ? 180 : 240;
+    const arcDeg = isMobile ? 52 : w < 1024 ? 80  : 90;
     const dyFactor = radius * 0.29; // keeps the curve's steepness consistent
+
+    // On mobile the horizontal arc alone is too cramped — cards pile on
+    // top of each other in a thin strip. We split the fan into two rows
+    // (even slots float up, odd slots drop down) so each card's hit-target
+    // is clearly distinguishable and the layout uses vertical space too.
+    const rowOffset = isMobile ? 95 : 0;
+    const tilt = isMobile ? 6 : 0;  // small extra rotation per row for character
 
     // Transform per slot in fan order — slot 0 leftmost, slot n−1 rightmost.
     const slotTransforms = Array.from({ length: n }, (_, slot) => {
       const t = (slot / (n - 1)) - 0.5;
       const angle = t * arcDeg;
       const dx = Math.sin((angle * Math.PI) / 180) * radius;
-      const dy = -Math.cos((angle * Math.PI) / 180) * dyFactor + dyFactor;
+      let dy = -Math.cos((angle * Math.PI) / 180) * dyFactor + dyFactor;
+
+      // Alternate vertical row + a touch of extra rotation so the up
+      // cards lean one way and the down cards the other.
+      let extraRot = 0;
+      if (isMobile) {
+        const isUpper = slot % 2 === 0;
+        dy += isUpper ? -rowOffset : rowOffset;
+        extraRot = isUpper ? -tilt : tilt;
+      }
+
       const z = 30 + slot * 2;
-      return `translate3d(${dx}px, ${dy}px, ${z}px) rotate(${angle}deg)`;
+      return `translate3d(${dx}px, ${dy}px, ${z}px) rotate(${angle + extraRot}deg)`;
     });
 
     // Fisher–Yates: each card gets assigned to a random fan slot, so
