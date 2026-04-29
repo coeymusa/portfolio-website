@@ -167,6 +167,18 @@ button { font-family: inherit; cursor: pointer; }
   }
 }
 
+/* Compensate for the fixed nav (88px desktop, 72px mobile) so that
+   programmatic scrollIntoView() — used by the teleport overlay — leaves
+   the project's title in view rather than tucked behind the nav bar. */
+app-project-card {
+  scroll-margin-top: 6.5rem;
+}
+@media (max-width: 640px) {
+  app-project-card {
+    scroll-margin-top: 5.25rem;
+  }
+}
+
 /* Fate-glow — the impact ring when the dice arrives at a project card */
 .fate-glow {
   position: relative;
