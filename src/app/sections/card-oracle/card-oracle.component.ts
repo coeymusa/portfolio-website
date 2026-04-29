@@ -84,8 +84,14 @@ const QUEEN_OF_HEARTS_SVG = `
 
           <div class="deck-wrap">
             <div class="deck"
+                 [class.idle]="phase() === 'idle'"
                  [class.draw-active]="isDrawingOrRevealed()"
-                 [class.selecting]="phase() === 'selecting'">
+                 [class.selecting]="phase() === 'selecting'"
+                 [attr.role]="phase() === 'idle' ? 'button' : null"
+                 [attr.tabindex]="phase() === 'idle' ? '0' : null"
+                 (click)="onDeckClick()"
+                 (keydown.enter)="onDeckClick()"
+                 (keydown.space)="onDeckClick(); $event.preventDefault()">
               @for (project of projects; track project.id; let i = $index) {
                 <div #card
                      class="card"
@@ -203,6 +209,8 @@ const QUEEN_OF_HEARTS_SVG = `
       perspective: 700px;
       perspective-origin: center 35%;
       transition: transform 0.3s;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
     }
     .deck-trigger:hover:not(:disabled) .mini-card {
       animation: deck-hover 1.6s ease-in-out infinite;
@@ -582,6 +590,47 @@ const QUEEN_OF_HEARTS_SVG = `
       transition: opacity 0.5s ease;
     }
 
+    /* In idle phase the deck itself is the tap target — easier on mobile
+       where the controls below may be off-screen. The cards inside ignore
+       pointer events so the tap bubbles to .deck. */
+    .deck.idle {
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .deck.idle .card { pointer-events: none; }
+
+    @media (hover: hover) {
+      .deck.idle:hover .card-back {
+        box-shadow:
+          inset 0 0 0 4px var(--ink-deep),
+          inset 0 0 0 5px var(--brass),
+          0 14px 28px rgba(0, 0, 0, 0.65),
+          0 0 24px rgba(201, 169, 97, 0.3);
+        transition: box-shadow 0.3s ease;
+      }
+    }
+
+    .deck.idle::after {
+      content: 'tap to cut';
+      position: absolute;
+      left: 50%;
+      bottom: -2.5rem;
+      transform: translateX(-50%);
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--brass);
+      opacity: 0.85;
+      pointer-events: none;
+      animation: deck-tap-pulse 2.4s ease-in-out infinite;
+      white-space: nowrap;
+    }
+    @keyframes deck-tap-pulse {
+      0%, 100% { opacity: 0.55; }
+      50%      { opacity: 1; }
+    }
+
     /* ================ EXP CONTROLS ================ */
     .exp-controls {
       display: flex;
@@ -670,12 +719,31 @@ const QUEEN_OF_HEARTS_SVG = `
       .oracle-prompt { flex-direction: row; align-items: baseline; gap: 0.6rem; width: auto; }
       .deck-trigger { width: 100px; height: 100px; }
       .mini-card { width: 60px; height: 84px; top: -42px; left: -30px; }
-      .exp-stage { padding: 4rem 1rem 2rem; gap: 1rem; }
+
+      /* On mobile the exp-stage stacks (flex-col) and scrolls if it
+         overflows, so the controls under the deck are always reachable.
+         Previous grid 1fr behaviour pushed buttons off-screen on short phones. */
+      .exp-stage {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        overflow-y: auto;
+        padding: 3.5rem 1rem 2rem;
+        gap: 1.5rem;
+      }
+      .exp-controls { flex-wrap: wrap; justify-content: center; }
+
       .deck { width: 160px; height: 224px; }
       .card { --card-w: 160px; --card-h: 224px; }
       .card-icon { width: 64px; height: 64px; }
       .card-title { font-size: 0.65rem; }
-      .card-numeral { font-size: 1.1rem; }
+      .numeral-letter { font-size: 1.1rem; }
+      .numeral-suit { font-size: 0.8rem; }
+
+      /* The "tap to cut" affordance hangs below the deck — give it
+         breathing room so it doesn't collide with the controls. */
+      .deck-wrap { padding-bottom: 2.5rem; }
     }
   `],
 })
@@ -761,6 +829,13 @@ export class CardOracleComponent {
     if (this.expanded() || this.dispatched()) return;
     this.expanded.set(true);
     requestAnimationFrame(() => this.expandedVisible.set(true));
+  }
+
+  /** Tap on the deck (idle phase) — equivalent to clicking "cut the deck". */
+  onDeckClick(): void {
+    if (this.phase() === 'idle' && !this.dispatched()) {
+      void this.shuffle();
+    }
   }
 
   onBackdropClick(): void {

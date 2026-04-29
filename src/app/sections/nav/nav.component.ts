@@ -214,7 +214,11 @@ import { Router, RouterLink } from '@angular/router';
       width: 44px;
       height: 44px;
       align-items: center;
+      /* Strip iOS's 300ms tap delay and reserve the gesture for tap. */
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
     }
+    .hamburger:active { background: rgba(255, 107, 53, 0.08); }
 
     .hamburger:focus-visible {
       outline: 2px solid var(--ember);
@@ -282,6 +286,8 @@ import { Router, RouterLink } from '@angular/router';
       cursor: pointer;
       transition: color 0.25s;
       border-bottom: 1px solid var(--rule);
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
     }
 
     .mobile-link .link-num {

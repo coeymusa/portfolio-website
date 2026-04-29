@@ -88,6 +88,13 @@ body::after {
   opacity: 0.6;
 }
 
+/* On phones the noise overlay's mix-blend-mode forces the entire
+   viewport to recomposite every animation frame — the dice 3D roll
+   becomes visibly janky. Drop it on small viewports. */
+@media (max-width: 768px) {
+  body::after { display: none; }
+}
+
 /* Selection */
 ::selection {
   background: var(--ember);

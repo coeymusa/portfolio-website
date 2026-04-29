@@ -146,7 +146,9 @@ import { TeleportService } from '../../../core/services/teleport.service';
         rotateY(var(--ry))
         rotateZ(var(--rz));
       transition: transform 1.6s cubic-bezier(0.32, 1.18, 0.42, 0.96);
+      will-change: transform; /* keep on a GPU layer for smoother rolls on mobile */
     }
+    .dice-button { touch-action: manipulation; }
     .dice.rolling {
       transition: transform 1.65s cubic-bezier(0.34, 1.06, 0.46, 1);
     }
