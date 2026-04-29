@@ -1,10 +1,11 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { DiceRollerComponent } from './dice-roller/dice-roller.component';
+import { CardOracleComponent } from '../card-oracle/card-oracle.component';
 
 @Component({
   selector: 'app-hero',
   standalone: true,
-  imports: [DiceRollerComponent],
+  imports: [DiceRollerComponent, CardOracleComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section id="hero" class="hero">
@@ -69,6 +70,7 @@ import { DiceRollerComponent } from './dice-roller/dice-roller.component';
         <!-- Right: dice + index sidebar -->
         <aside class="index-sidebar">
           <app-dice-roller />
+          <app-card-oracle />
 
           <div class="status-pulse">
             <span class="pulse-dot"></span>

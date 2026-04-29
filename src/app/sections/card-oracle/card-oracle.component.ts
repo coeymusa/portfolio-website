@@ -12,180 +12,354 @@ import { PROJECTS, Project } from '../../core/models/project.model';
 import { TeleportService } from '../../core/services/teleport.service';
 
 /**
- * Second oracle: a deck of eight tarot-styled cards that shuffles, draws one,
- * reveals the entry, then hands off to the teleport overlay (with the card
- * itself as the ghost). Parallel to the d8 dice in the hero.
+ * Second oracle (parallel to the d8 dice). Lives in the hero sidebar as a
+ * small stacked-deck button that mirrors the dice's compact form. Clicking
+ * it expands a full-screen overlay where eight tarot-style cards fan,
+ * shuffle, draw, and reveal — then dispatches a card-shaped teleport to
+ * the chosen project.
  *
- * Animation flow (~4.7s before the teleport fires):
- *   1. Fan out — cards lift from the deck into an arc.
- *   2. Riffle — cards swap positions in two quick passes.
- *   3. Collapse — cards return to the stack with the picked one on top.
- *   4. Draw — top card lifts out, flips face-up, scales up at centre.
- *   5. Hold — drawn card displayed for the user.
- *   6. Dispatch — TeleportService.summon({ ghostKind: 'card', ... }).
+ * The compact and expanded views share a single component because the
+ * draw state, drawn index, and dispatched flag all live on the same
+ * machine and we want them aligned across both displays.
  */
 @Component({
   selector: 'app-card-oracle',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <section id="card-oracle" class="section card-oracle">
-      <div class="container">
-        <header class="masthead">
-          <div class="masthead-rule">
-            <span class="rule-tag">INTERLUDE — A SECOND ORACLE</span>
-          </div>
-          <h2 class="archive-title">
-            <em>Cut</em> the Deck
-          </h2>
-          <p class="archive-subtitle">
-            Eight arcana, shuffled. Let the deck pick the next entry.
-            <span class="mono">[ {{ stateLabel() }} ]</span>
-          </p>
-        </header>
+    <!-- ============== COMPACT (in hero sidebar) ============== -->
+    <div class="compact-stage" [class.dimmed]="expanded() || dispatched()">
+      <p class="oracle-prompt">
+        <span class="oracle-label">ORACLE</span>
+        <span class="oracle-sub">draw a card · 8 arcana</span>
+      </p>
 
-        <div class="stage"
-             [class.shuffling]="phase() !== 'idle' && phase() !== 'revealed'"
-             [class.revealed]="phase() === 'revealed'"
-             [class.dispatched]="dispatched()">
-          <div class="deck">
-            @for (project of projects; track project.id; let i = $index) {
-              <div #card
-                   class="card"
-                   [attr.data-idx]="i"
-                   [style.--accent]="project.accent"
-                   [style.--depth]="i"
-                   [class.is-drawn]="drawnIndex() === i">
-                <div class="card-face card-back">
-                  <div class="back-frame">
-                    <div class="back-mark">CC</div>
-                    <div class="back-corners">
-                      <span></span><span></span><span></span><span></span>
+      <button
+        class="deck-trigger"
+        (click)="expand()"
+        [disabled]="expanded() || dispatched()"
+        [attr.aria-label]="'Open the deck oracle to draw an arcanum'"
+      >
+        <span class="mini-stack">
+          <span class="mini-card" [style.--i]="0"></span>
+          <span class="mini-card" [style.--i]="1"></span>
+          <span class="mini-card" [style.--i]="2"></span>
+          <span class="mini-card" [style.--i]="3"></span>
+        </span>
+      </button>
+
+      <div class="compact-status">
+        <span class="compact-status-text">cut the deck · 8 arcana</span>
+      </div>
+    </div>
+
+    <!-- ============== EXPANDED (full-screen) ============== -->
+    @if (expanded()) {
+      <div class="expanded-overlay" [class.visible]="expandedVisible()">
+        <div class="exp-backdrop" (click)="onBackdropClick()"></div>
+
+        <div class="exp-stage">
+          <header class="exp-masthead">
+            <div class="exp-rule">
+              <span class="exp-rule-tag">INTERLUDE — A SECOND ORACLE</span>
+            </div>
+            <h2 class="exp-title"><em>Cut</em> the Deck</h2>
+            <p class="exp-sub">
+              Eight arcana, shuffled. Let the deck pick the next entry.
+              <span class="mono">[ {{ stateLabel() }} ]</span>
+            </p>
+          </header>
+
+          <div class="deck-wrap">
+            <div class="deck">
+              @for (project of projects; track project.id; let i = $index) {
+                <div #card
+                     class="card"
+                     [attr.data-idx]="i"
+                     [style.--accent]="project.accent"
+                     [style.--depth]="i"
+                     [class.is-drawn]="drawnIndex() === i">
+                  <div class="card-face card-back">
+                    <div class="back-frame">
+                      <div class="back-mark">CC</div>
+                      <div class="back-corners">
+                        <span></span><span></span><span></span><span></span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="card-face card-front">
+                    <div class="front-frame">
+                      <span class="card-numeral nw">{{ romans[i] }}</span>
+                      <div class="card-icon" [innerHTML]="iconSvg(project)"></div>
+                      <span class="card-title">{{ project.title }}</span>
+                      <span class="card-numeral se">{{ romans[i] }}</span>
                     </div>
                   </div>
                 </div>
-                <div class="card-face card-front">
-                  <div class="front-frame">
-                    <span class="card-numeral nw">{{ romans[i] }}</span>
-                    <div class="card-icon" [innerHTML]="iconSvg(project)"></div>
-                    <span class="card-title">{{ project.title }}</span>
-                    <span class="card-numeral se">{{ romans[i] }}</span>
-                  </div>
-                </div>
-              </div>
-            }
+              }
+            </div>
           </div>
 
-          <button class="cta"
-                  (click)="draw()"
-                  [disabled]="!canDraw()">
-            <span class="cta-arrow">›</span>
-            <span class="cta-text">{{ ctaLabel() }}</span>
-          </button>
+          <div class="exp-controls">
+            <button class="cta cta-primary"
+                    (click)="draw()"
+                    [disabled]="!canDraw()">
+              <span class="cta-arrow">›</span>
+              <span class="cta-text">{{ ctaLabel() }}</span>
+            </button>
+            @if (canCancel()) {
+              <button class="cta cta-ghost" (click)="collapse()">
+                <span>cancel</span>
+              </button>
+            }
+          </div>
         </div>
       </div>
-    </section>
+    }
   `,
   styles: [`
     :host { display: block; }
 
-    .card-oracle {
-      background: var(--ink-deep);
-      position: relative;
-      overflow: hidden;
+    /* ================ COMPACT ================ */
+    .compact-stage {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      padding-top: 1.5rem;
+      margin-top: 1rem;
+      border-top: 1px solid var(--rule);
+      transition: opacity 0.4s ease;
     }
-    .card-oracle::before {
+    .compact-stage.dimmed { opacity: 0.25; pointer-events: none; }
+
+    .oracle-prompt {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.15rem;
+      width: 100%;
+    }
+    .oracle-label {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.25em;
+      color: var(--brass);
+    }
+    .oracle-sub {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: 0.85rem;
+      color: var(--text-mute);
+    }
+
+    .deck-trigger {
+      position: relative;
+      width: 130px;
+      height: 130px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      perspective: 700px;
+      perspective-origin: center 35%;
+      transition: transform 0.3s;
+    }
+    .deck-trigger:hover:not(:disabled) .mini-card {
+      animation: deck-hover 1.6s ease-in-out infinite;
+    }
+    .deck-trigger:disabled {
+      cursor: progress;
+      opacity: 0.5;
+    }
+    .deck-trigger:focus-visible {
+      outline: none;
+    }
+    .deck-trigger:focus-visible .mini-card {
+      filter: drop-shadow(0 0 6px var(--brass));
+    }
+
+    .mini-stack {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      transform-style: preserve-3d;
+      transform: rotateX(-12deg) rotateY(8deg);
+    }
+
+    .mini-card {
+      position: absolute;
+      width: 76px;
+      height: 106px;
+      top: -53px;
+      left: -38px;
+      border-radius: 4px;
+
+      background:
+        repeating-linear-gradient(
+          45deg,
+          rgba(201, 169, 97, 0.05) 0,
+          rgba(201, 169, 97, 0.05) 2px,
+          transparent 2px,
+          transparent 6px),
+        radial-gradient(ellipse at center,
+          var(--ink-warm) 0%,
+          var(--ink-deep) 80%);
+      border: 1px solid var(--brass-mute);
+      box-shadow:
+        inset 0 0 0 2px var(--ink-deep),
+        inset 0 0 0 3px var(--brass-mute),
+        0 4px 8px rgba(0, 0, 0, 0.5);
+
+      transform: translate3d(
+                   calc(var(--i) * 2px),
+                   calc(var(--i) * -2px),
+                   calc(var(--i) * 1px))
+                 rotate(calc(var(--i) * 1.2deg - 1.8deg));
+    }
+
+    .mini-card::after {
       content: '';
+      position: absolute;
+      inset: 6px;
+      border: 1px solid rgba(201, 169, 97, 0.25);
+      border-radius: 2px;
+    }
+
+    @keyframes deck-hover {
+      0%, 100% { transform: translate3d(calc(var(--i) * 2px), calc(var(--i) * -2px), calc(var(--i) * 1px)) rotate(calc(var(--i) * 1.2deg - 1.8deg)); }
+      50%      { transform: translate3d(calc(var(--i) * 2.5px), calc(var(--i) * -3px), calc(var(--i) * 2px)) rotate(calc(var(--i) * 1.5deg - 1.5deg)); }
+    }
+
+    .compact-status {
+      min-height: 24px;
+      width: 100%;
+      text-align: center;
+    }
+    .compact-status-text {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-faint);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+
+    /* ================ EXPANDED OVERLAY ================ */
+    .expanded-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 8500;
+      pointer-events: auto;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+    .expanded-overlay.visible { opacity: 1; }
+
+    .exp-backdrop {
       position: absolute;
       inset: 0;
       background:
-        radial-gradient(ellipse at top, rgba(201, 169, 97, 0.04) 0%, transparent 60%),
-        radial-gradient(ellipse at bottom, rgba(255, 107, 53, 0.03) 0%, transparent 60%);
-      pointer-events: none;
+        radial-gradient(ellipse at center,
+          rgba(15, 14, 12, 0.85) 0%,
+          rgba(5, 4, 3, 0.97) 80%);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
     }
 
-    /* ---- Masthead (mirrors the projects section) ---- */
-    .masthead {
-      margin-bottom: 4rem;
-      max-width: 780px;
+    .exp-stage {
       position: relative;
-      z-index: 2;
+      height: 100%;
+      width: 100%;
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 5rem 2rem 3rem;
+      box-sizing: border-box;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 1.5rem;
+      align-items: center;
+      justify-items: center;
     }
-    .masthead-rule {
+
+    .exp-masthead {
+      max-width: 720px;
+      width: 100%;
+      text-align: center;
+      animation: exp-fade-in 0.6s ease 0.1s both;
+    }
+
+    .exp-rule {
       display: flex;
       align-items: center;
       gap: 1rem;
-      margin-bottom: 2rem;
+      margin-bottom: 1.5rem;
+      justify-content: center;
     }
-    .masthead-rule::before {
+    .exp-rule::before, .exp-rule::after {
       content: '';
-      flex: 0 0 60px;
-      height: 1px;
-      background: var(--brass);
-    }
-    .masthead-rule::after {
-      content: '';
-      flex: 1;
       height: 1px;
       background: var(--rule);
     }
-    .rule-tag {
+    .exp-rule::before { flex: 0 0 60px; background: var(--brass); }
+    .exp-rule::after { flex: 1; }
+
+    .exp-rule-tag {
       font-family: var(--font-mono);
       font-size: 0.7rem;
       letter-spacing: 0.25em;
       color: var(--brass);
     }
-    .archive-title {
+
+    .exp-title {
       font-family: var(--font-display);
       font-variation-settings: 'opsz' 144, 'WONK' 1;
-      font-size: clamp(3rem, 8vw, 6rem);
+      font-size: clamp(2.5rem, 7vw, 5rem);
       line-height: 0.95;
       font-weight: 400;
       color: var(--paper);
       letter-spacing: -0.04em;
-      margin-bottom: 1.25rem;
+      margin-bottom: 0.85rem;
     }
-    .archive-title em {
+    .exp-title em {
       font-style: italic;
       font-weight: 200;
       color: var(--text-mute);
       font-size: 0.7em;
       margin-right: 0.25rem;
     }
-    .archive-subtitle {
+    .exp-sub {
       font-family: var(--font-display);
       font-style: italic;
-      font-size: 1.15rem;
+      font-size: 1.05rem;
       color: var(--text);
       line-height: 1.6;
     }
-    .archive-subtitle .mono {
+    .exp-sub .mono {
       font-family: var(--font-mono);
       font-style: normal;
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       color: var(--brass-mute);
-      margin-left: 0.75rem;
+      margin-left: 0.5rem;
       letter-spacing: 0.1em;
     }
 
-    /* ---- Stage ---- */
-    .stage {
-      position: relative;
-      height: 460px;
+    /* ================ DECK STAGE (animation area) ================ */
+    .deck-wrap {
+      width: 100%;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 2rem;
       perspective: 1400px;
-      perspective-origin: center 35%;
+      perspective-origin: center 40%;
     }
-
     .deck {
       position: relative;
       width: 200px;
       height: 280px;
       transform-style: preserve-3d;
+      animation: exp-fade-in 0.6s ease 0.25s both;
     }
 
     /* ---- Cards ---- */
@@ -203,14 +377,12 @@ import { TeleportService } from '../../core/services/teleport.service';
       transform-style: preserve-3d;
       will-change: transform;
 
-      /* Stacked deck: each card slightly offset for 3D depth */
       transform:
         translate3d(
           calc(var(--depth) * 1.5px),
           calc(var(--depth) * -1.5px),
           calc(var(--depth) * 1px))
         rotate(calc(var(--depth) * 0.4deg));
-      transition: transform 0.4s ease;
     }
 
     .card-face {
@@ -221,7 +393,6 @@ import { TeleportService } from '../../core/services/teleport.service';
       border-radius: 4px;
     }
 
-    /* Card BACK — dark with brass ornament */
     .card-back {
       background:
         repeating-linear-gradient(
@@ -257,7 +428,7 @@ import { TeleportService } from '../../core/services/teleport.service';
       color: var(--brass);
       letter-spacing: -0.08em;
       text-shadow: 0 0 14px rgba(201, 169, 97, 0.4);
-      opacity: 0.8;
+      opacity: 0.85;
     }
     .back-corners span {
       position: absolute;
@@ -270,7 +441,6 @@ import { TeleportService } from '../../core/services/teleport.service';
     .back-corners span:nth-child(3) { bottom: -1px; left: -1px; border-right: 0; border-top: 0; }
     .back-corners span:nth-child(4) { bottom: -1px; right: -1px; border-left: 0; border-top: 0; }
 
-    /* Card FRONT — paper with project info */
     .card-front {
       background: linear-gradient(165deg, var(--paper) 0%, var(--paper-mute) 100%);
       border: 1px solid var(--accent);
@@ -305,11 +475,7 @@ import { TeleportService } from '../../core/services/teleport.service';
       line-height: 1;
     }
     .card-numeral.nw { top: 8px; left: 12px; }
-    .card-numeral.se {
-      bottom: 8px;
-      right: 12px;
-      transform: rotate(180deg);
-    }
+    .card-numeral.se { bottom: 8px; right: 12px; transform: rotate(180deg); }
     .card-icon {
       grid-row: 2 / 3;
       align-self: center;
@@ -341,67 +507,74 @@ import { TeleportService } from '../../core/services/teleport.service';
       margin-bottom: 0.5rem;
     }
 
-    /* ---- CTA ---- */
+    /* ================ EXP CONTROLS ================ */
+    .exp-controls {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      animation: exp-fade-in 0.6s ease 0.4s both;
+    }
     .cta {
       display: inline-flex;
       align-items: center;
       gap: 0.85rem;
       padding: 0.75rem 1.5rem;
       background: transparent;
-      color: var(--paper);
-      border: 1px solid var(--brass);
       font-family: var(--font-mono);
       font-size: 0.78rem;
       letter-spacing: 0.22em;
       text-transform: uppercase;
       cursor: pointer;
       transition: background 0.3s, color 0.3s, border-color 0.3s;
-      position: relative;
-      z-index: 3;
     }
-    .cta:hover:not(:disabled) {
+    .cta-primary {
+      color: var(--paper);
+      border: 1px solid var(--brass);
+    }
+    .cta-primary:hover:not(:disabled) {
       background: var(--brass);
       color: var(--ink);
     }
-    .cta:disabled {
-      cursor: progress;
-      opacity: 0.55;
-    }
-    .cta-arrow {
-      color: var(--ember);
-      font-size: 1.05rem;
-      line-height: 1;
-    }
-    .cta:hover:not(:disabled) .cta-arrow { color: var(--ink); }
+    .cta-primary:disabled { cursor: progress; opacity: 0.55; }
+    .cta-arrow { color: var(--ember); font-size: 1.05rem; line-height: 1; }
+    .cta-primary:hover:not(:disabled) .cta-arrow { color: var(--ink); }
 
-    /* ---- States ---- */
-    .stage.dispatched .deck { opacity: 0; transition: opacity 0.5s ease; }
+    .cta-ghost {
+      color: var(--text-faint);
+      border: 1px solid var(--rule-light);
+    }
+    .cta-ghost:hover { color: var(--text); border-color: var(--rule); }
+
+    @keyframes exp-fade-in {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
 
     @media (prefers-reduced-motion: reduce) {
-      .card { transition: none !important; }
+      .deck-trigger:hover .mini-card { animation: none !important; }
+      .expanded-overlay { transition: none !important; }
+      .exp-masthead, .deck, .exp-controls { animation: none !important; }
     }
 
-    /* Tablet & mobile */
-    @media (max-width: 768px) {
-      .stage { height: 420px; }
-      .deck {
-        --card-scale: 0.85;
-        width: calc(200px * var(--card-scale));
-        height: calc(280px * var(--card-scale));
-      }
-      .card {
-        --card-w: calc(200px * var(--card-scale, 0.85));
-        --card-h: calc(280px * var(--card-scale, 0.85));
-        width: var(--card-w);
-        height: var(--card-h);
-      }
-      .archive-title { font-size: clamp(2.25rem, 12vw, 3rem); }
+    @media (max-width: 1024px) and (min-width: 641px) {
+      .compact-stage { flex-direction: row; flex-wrap: wrap; gap: 1.5rem; padding-top: 1rem; margin-top: 0; border-top: none; }
+      .oracle-prompt { flex-direction: row; gap: 0.5rem; width: auto; }
+      .deck-trigger { width: 110px; height: 110px; }
+      .mini-card { width: 64px; height: 90px; top: -45px; left: -32px; }
+      .compact-status { flex: 1; text-align: left; min-width: 200px; }
     }
-    @media (max-width: 480px) {
-      .stage { height: 380px; gap: 1.5rem; }
-      .deck {
-        --card-scale: 0.7;
-      }
+
+    @media (max-width: 640px) {
+      .compact-stage { gap: 0.75rem; padding-top: 1rem; margin-top: 0.5rem; }
+      .oracle-prompt { flex-direction: row; align-items: baseline; gap: 0.6rem; width: auto; }
+      .deck-trigger { width: 100px; height: 100px; }
+      .mini-card { width: 60px; height: 84px; top: -42px; left: -30px; }
+      .exp-stage { padding: 4rem 1rem 2rem; gap: 1rem; }
+      .deck { width: 160px; height: 224px; }
+      .card { --card-w: 160px; --card-h: 224px; }
+      .card-icon { width: 64px; height: 64px; }
+      .card-title { font-size: 0.65rem; }
+      .card-numeral { font-size: 1.1rem; }
     }
   `],
 })
@@ -412,7 +585,10 @@ export class CardOracleComponent {
   readonly projects: Project[] = PROJECTS;
   readonly romans = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII'];
 
-  /** State machine: idle → fanning → riffling → collapsing → drawing → revealed → dispatched. */
+  readonly expanded = signal(false);
+  /** Two-step show so we can fade in via CSS transition. */
+  readonly expandedVisible = signal(false);
+
   readonly phase = signal<'idle' | 'fanning' | 'riffling' | 'collapsing' | 'drawing' | 'revealed'>('idle');
   readonly drawnIndex = signal(-1);
   readonly dispatched = signal(false);
@@ -420,7 +596,11 @@ export class CardOracleComponent {
   private readonly cardsRef = viewChildren<ElementRef<HTMLElement>>('card');
 
   readonly canDraw = computed(() =>
-    this.phase() === 'idle' && !this.dispatched(),
+    this.expanded() && this.phase() === 'idle' && !this.dispatched(),
+  );
+
+  readonly canCancel = computed(() =>
+    this.expanded() && this.phase() === 'idle' && !this.dispatched(),
   );
 
   readonly ctaLabel = computed(() => {
@@ -455,6 +635,31 @@ export class CardOracleComponent {
     );
   }
 
+  // ============== expand / collapse ==============
+
+  expand(): void {
+    if (this.expanded() || this.dispatched()) return;
+    this.expanded.set(true);
+    // Next frame, set visible so the CSS transition runs.
+    requestAnimationFrame(() => this.expandedVisible.set(true));
+  }
+
+  onBackdropClick(): void {
+    if (this.canCancel()) this.collapse();
+  }
+
+  collapse(): void {
+    if (!this.canCancel()) return;
+    this.expandedVisible.set(false);
+    window.setTimeout(() => {
+      this.expanded.set(false);
+      this.phase.set('idle');
+      this.drawnIndex.set(-1);
+    }, 500);
+  }
+
+  // ============== draw ==============
+
   async draw(): Promise<void> {
     if (!this.canDraw()) return;
 
@@ -462,7 +667,6 @@ export class CardOracleComponent {
     if (cards.length !== this.projects.length) return;
 
     if (this.prefersReducedMotion()) {
-      // Skip the choreography for accessibility — pick + dispatch directly.
       const pick = Math.floor(Math.random() * this.projects.length);
       this.drawnIndex.set(pick);
       this.phase.set('revealed');
@@ -479,7 +683,7 @@ export class CardOracleComponent {
     await this.riffle(cards);
 
     this.phase.set('collapsing');
-    await this.collapse(cards, pickIdx);
+    await this.collapse_(cards, pickIdx);
 
     this.phase.set('drawing');
     await this.drawCard(cards, pickIdx);
@@ -487,26 +691,23 @@ export class CardOracleComponent {
     this.drawnIndex.set(pickIdx);
     this.phase.set('revealed');
 
-    // Hold so the user reads the entry.
     await this.sleep(1700);
 
     this.dispatchTeleport(pickIdx, cards[pickIdx]);
   }
 
-  // -------------- animation phases --------------
+  // ============== animation phases ==============
 
-  /** Cards lift out of the deck and arc into a hand. */
   private async fanOut(cards: HTMLElement[]): Promise<void> {
     const N = cards.length;
-    const arcDeg = 90; // total spread
+    const arcDeg = 90;
     const radius = 240;
 
     const tasks = cards.map((card, i) => {
-      // Spread cards from -arcDeg/2 to +arcDeg/2
-      const t = (i / (N - 1)) - 0.5; // -0.5 .. +0.5
+      const t = (i / (N - 1)) - 0.5;
       const angle = t * arcDeg;
       const dx = Math.sin((angle * Math.PI) / 180) * radius;
-      const dy = -Math.cos((angle * Math.PI) / 180) * 70 + 70; // shallow downward arc
+      const dy = -Math.cos((angle * Math.PI) / 180) * 70 + 70;
       const z = 30 + i * 2;
 
       return card.animate(
@@ -529,7 +730,6 @@ export class CardOracleComponent {
     await Promise.all(tasks);
   }
 
-  /** Quick riffle: cards swap pairs twice, with a flutter. */
   private async riffle(cards: HTMLElement[]): Promise<void> {
     const arcDeg = 90;
     const radius = 240;
@@ -544,23 +744,23 @@ export class CardOracleComponent {
       return { dx, dy, angle, z };
     };
 
-    // Two passes of pair swaps. Cards flick up + over to a swapped slot.
-    const passes = 2;
-    for (let pass = 0; pass < passes; pass++) {
+    for (let pass = 0; pass < 2; pass++) {
       const swapTasks = cards.map((card, i) => {
-        // Pair partner: (i, i^1) — swap adjacent pairs (0↔1, 2↔3, ...).
-        // For odd pass, shift by 1 so different pairs swap.
-        const partnerOffset = pass % 2 === 0 ? (i % 2 === 0 ? 1 : -1) : (i % 2 === 0 ? -1 : 1);
+        const partnerOffset = pass % 2 === 0
+          ? (i % 2 === 0 ? 1 : -1)
+          : (i % 2 === 0 ? -1 : 1);
         const partner = i + partnerOffset;
         if (partner < 0 || partner >= N) return Promise.resolve();
         const here = positionAt(i);
         const there = positionAt(partner);
 
-        // Flick up, swap, settle.
         return card.animate(
           [
             { transform: `translate3d(${here.dx}px, ${here.dy}px, ${here.z}px) rotate(${here.angle}deg)` },
-            { transform: `translate3d(${(here.dx + there.dx) / 2}px, ${here.dy - 40}px, ${here.z + 30}px) rotate(${(here.angle + there.angle) / 2}deg)`, offset: 0.5 },
+            {
+              transform: `translate3d(${(here.dx + there.dx) / 2}px, ${here.dy - 40}px, ${here.z + 30}px) rotate(${(here.angle + there.angle) / 2}deg)`,
+              offset: 0.5,
+            },
             { transform: `translate3d(${there.dx}px, ${there.dy}px, ${there.z}px) rotate(${there.angle}deg)`, offset: 1 },
           ],
           { duration: 500, easing: 'ease-in-out', fill: 'forwards' },
@@ -570,10 +770,8 @@ export class CardOracleComponent {
     }
   }
 
-  /** Cards return to the deck stack, with the picked card placed on top. */
-  private async collapse(cards: HTMLElement[], pickIdx: number): Promise<void> {
+  private async collapse_(cards: HTMLElement[], pickIdx: number): Promise<void> {
     const tasks = cards.map((card, i) => {
-      // Visual depth — picked card rendered on top (highest depth).
       const finalDepth = i === pickIdx ? cards.length - 1 : (i < pickIdx ? i : i - 1);
       return card.animate(
         [
@@ -594,30 +792,19 @@ export class CardOracleComponent {
     await Promise.all(tasks);
   }
 
-  /** Picked card lifts out of the deck, scales up, and flips face-up. */
   private async drawCard(cards: HTMLElement[], pickIdx: number): Promise<void> {
     const card = cards[pickIdx];
-
     await card.animate(
       [
-        {
-          transform: 'translate3d(0, 0, 80px) rotateY(0deg) scale(1)',
-          offset: 0,
-        },
-        {
-          transform: 'translate3d(0, -50px, 160px) rotateY(0deg) scale(1.1)',
-          offset: 0.35,
-        },
-        {
-          transform: 'translate3d(0, -50px, 200px) rotateY(180deg) scale(1.18)',
-          offset: 1,
-        },
+        { transform: 'translate3d(0, 0, 80px) rotateY(0deg) scale(1)', offset: 0 },
+        { transform: 'translate3d(0, -50px, 160px) rotateY(0deg) scale(1.1)', offset: 0.35 },
+        { transform: 'translate3d(0, -50px, 200px) rotateY(180deg) scale(1.18)', offset: 1 },
       ],
       { duration: 850, easing: 'cubic-bezier(0.2, 0.8, 0.3, 1.05)', fill: 'forwards' },
     ).finished;
   }
 
-  // -------------- handoff --------------
+  // ============== handoff ==============
 
   private dispatchTeleport(pickIdx: number, card: HTMLElement): void {
     const project = this.projects[pickIdx];
@@ -632,23 +819,27 @@ export class CardOracleComponent {
       ghostKind: 'card',
     });
 
-    // Reset after the cinematic finishes.
+    // After the teleport cinematic finishes, hide the expanded view + reset.
     window.setTimeout(() => {
-      this.dispatched.set(false);
-      this.drawnIndex.set(-1);
-      this.phase.set('idle');
-      // Snap cards back to deck pose.
-      const cards = this.cardsRef().map((r) => r.nativeElement);
-      cards.forEach((c, i) => {
-        c.getAnimations().forEach((a) => a.cancel());
-        c.style.transform = '';
-      });
-    }, 5500);
+      this.expandedVisible.set(false);
+      window.setTimeout(() => {
+        this.expanded.set(false);
+        this.dispatched.set(false);
+        this.drawnIndex.set(-1);
+        this.phase.set('idle');
+
+        // Cancel any lingering animations on the cards so the deck pose returns.
+        const cards = this.cardsRef().map((r) => r.nativeElement);
+        cards.forEach((c) => {
+          c.getAnimations().forEach((a) => a.cancel());
+          c.style.transform = '';
+        });
+      }, 500);
+    }, 5000);
   }
 
-  // -------------- helpers --------------
+  // ============== helpers ==============
 
-  /** Keyframe representing a card sitting in the stack at depth `i`. */
   private deckPose(i: number): Keyframe {
     return {
       transform: `translate3d(${i * 1.5}px, ${i * -1.5}px, ${i * 1}px) rotate(${i * 0.4}deg)`,
