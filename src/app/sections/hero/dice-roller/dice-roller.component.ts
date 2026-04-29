@@ -369,19 +369,25 @@ export class DiceRollerComponent {
    * to the dice brings face k's outward normal to +Z (toward camera),
    * so face k ends up squarely facing the viewer.
    *
-   * Top 4 faces (apex at +Y in math frame): β = arctan(√2) ≈ 54.74°
-   * Bottom 4 faces (apex at −Y): β = 180° − 54.74° = 125.26°
-   * α picks the octant: ±45° for the +X side, ±135° for the −X side.
+   * Derivation: for a face with CSS normal N = (Nx, Ny, Nz)/√3,
+   *   • α (rz) is chosen so rotateZ(α) zeroes the y component AND
+   *     leaves a positive x component.
+   *   • β (ry) is then chosen so rotateY(β) maps (X′, 0, Nz/√3)
+   *     onto (0, 0, 1). For Nz = +1 this is β = −54.74°
+   *     (= −arctan √2); for Nz = −1 it is β = −125.26°.
+   *
+   * (Applied as: transform: rotateY(β) rotateZ(α), which CSS evaluates
+   *  right-to-left — rotateZ first, then rotateY.)
    */
   private readonly settles = [
-    { ry:  54.74, rz:  -45 }, // F1  top, +X +Z
-    { ry:  54.74, rz: -135 }, // F2  top, −X +Z
-    { ry: 125.26, rz: -135 }, // F3  top, −X −Z
-    { ry: 125.26, rz:  -45 }, // F4  top, +X −Z
-    { ry:  54.74, rz:   45 }, // F5  bot, +X +Z
-    { ry:  54.74, rz:  135 }, // F6  bot, −X +Z
-    { ry: 125.26, rz:  135 }, // F7  bot, −X −Z
-    { ry: 125.26, rz:   45 }, // F8  bot, +X −Z
+    { ry:  -54.74, rz:   45 }, // F1  top, +X +Z
+    { ry:  -54.74, rz:  135 }, // F2  top, −X +Z
+    { ry: -125.26, rz:  135 }, // F3  top, −X −Z
+    { ry: -125.26, rz:   45 }, // F4  top, +X −Z
+    { ry:  -54.74, rz:  -45 }, // F5  bot, +X +Z
+    { ry:  -54.74, rz: -135 }, // F6  bot, −X +Z
+    { ry: -125.26, rz: -135 }, // F7  bot, −X −Z
+    { ry: -125.26, rz:  -45 }, // F8  bot, +X −Z
   ];
 
   resultIndex = computed(() => {
