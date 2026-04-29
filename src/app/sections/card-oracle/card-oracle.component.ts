@@ -761,8 +761,25 @@ export class CardOracleComponent {
     if (this.phase() !== 'selecting') return;
     const cards = this.cardsRef().map((r) => r.nativeElement);
     this.phase.set('shuffling');
+
+    // Visual riffle on the CURRENT slot assignment.
     await this.riffle(cards);
-    await this.settleToFan(cards);
+
+    // Re-randomize: every card gets a new slot, then slide to it.
+    this.fanTransforms = this.computeFanTransforms(cards.length);
+    const tasks = cards.map((card, i) =>
+      card.animate(
+        [{}, { transform: this.fanTransforms[i], offset: 1 }],
+        {
+          duration: 500,
+          delay: i * 35,
+          easing: 'cubic-bezier(0.4, 0.2, 0.4, 1)',
+          fill: 'forwards',
+        },
+      ).finished,
+    );
+    await Promise.all(tasks);
+
     this.phase.set('selecting');
   }
 
@@ -845,14 +862,26 @@ export class CardOracleComponent {
   private computeFanTransforms(n: number): string[] {
     const arcDeg = 90;
     const radius = 240;
-    return Array.from({ length: n }, (_, i) => {
-      const t = (i / (n - 1)) - 0.5;
+    // Transform per slot in fan order — slot 0 leftmost, slot n−1 rightmost.
+    const slotTransforms = Array.from({ length: n }, (_, slot) => {
+      const t = (slot / (n - 1)) - 0.5;
       const angle = t * arcDeg;
       const dx = Math.sin((angle * Math.PI) / 180) * radius;
       const dy = -Math.cos((angle * Math.PI) / 180) * 70 + 70;
-      const z = 30 + i * 2;
+      const z = 30 + slot * 2;
       return `translate3d(${dx}px, ${dy}px, ${z}px) rotate(${angle}deg)`;
     });
+
+    // Fisher–Yates: each card gets assigned to a random fan slot, so
+    // every shuffle produces a genuinely different visible order.
+    const assignment = Array.from({ length: n }, (_, i) => i);
+    for (let i = assignment.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [assignment[i], assignment[j]] = [assignment[j], assignment[i]];
+    }
+
+    // fanTransforms[cardIdx] = the slot transform that this card landed on.
+    return assignment.map((slot) => slotTransforms[slot]);
   }
 
   private async fanOut(cards: HTMLElement[]): Promise<void> {
