@@ -25,7 +25,7 @@ interface ContactLink {
           <p class="archive-subtitle">
             Looking for a senior engineer who has shipped both at
             <em>billion-dollar institutions</em> and <em>solo</em>?
-            Three channels, all read.
+            Two channels, both read.
           </p>
         </header>
 
@@ -330,13 +330,6 @@ export class ContactComponent {
       label: 'Electronic Mail',
       url: 'mailto:coreymusa@outlook.com',
       urlText: 'coreymusa@outlook.com',
-      icon: '',
-    },
-    {
-      channel: 'PERSONAL',
-      label: 'Instagram',
-      url: 'https://instagram.com/coreym96',
-      urlText: '@coreym96',
       icon: '',
     },
   ];
