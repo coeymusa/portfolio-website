@@ -30,6 +30,7 @@ import { TeleportService } from '../../../core/services/teleport.service';
         [attr.aria-label]="rolling() ? 'Rolling…' : 'Roll the d8 to pick a random project'"
       >
         <span
+          #diceEl
           class="dice"
           [class.rolling]="rolling()"
           [style.--rx]="rotX() + 'deg'"
@@ -145,13 +146,14 @@ import { TeleportService } from '../../../core/services/teleport.service';
         rotateX(var(--rx))
         rotateY(var(--ry))
         rotateZ(var(--rz));
-      transition: transform 1.6s cubic-bezier(0.32, 1.18, 0.42, 0.96);
       will-change: transform; /* keep on a GPU layer for smoother rolls on mobile */
     }
     .dice-button { touch-action: manipulation; }
-    .dice.rolling {
-      transition: transform 1.65s cubic-bezier(0.34, 1.06, 0.46, 1);
-    }
+    /* The roll itself is driven by the Web Animations API (see roll() in
+       the component) — CSS transitions on transforms with var()-based
+       angles aren't reliable on mobile when the rotation spans multiple
+       full turns (the engine matrix-decomposes to the shortest path,
+       killing the spin). */
 
     /* === Triangular face === */
     .face {
@@ -356,6 +358,7 @@ export class DiceRollerComponent {
   readonly rotZ = signal(0);
 
   private readonly diceButtonRef = viewChild<ElementRef<HTMLButtonElement>>('diceButton');
+  private readonly diceElRef = viewChild<ElementRef<HTMLElement>>('diceEl');
 
   /** Pending auto-summon timer; cleared if the user re-rolls or summons manually. */
   private autoSummonTimer: number | null = null;
@@ -415,13 +418,45 @@ export class DiceRollerComponent {
     const baseZ = this.rotZ();
     const minTurns = 3 + Math.floor(Math.random() * 2); // 3 or 4 full revolutions
 
-    // Each axis spins ≥ minTurns full turns and lands on its specific target,
-    // so the dice physically settles with the picked face up.
-    this.rotX.set(this.nextEquivalent(baseX,  0,         minTurns));
-    this.rotY.set(this.nextEquivalent(baseY,  target.ry, minTurns));
-    this.rotZ.set(this.nextEquivalent(baseZ,  target.rz, minTurns));
+    const finalX = this.nextEquivalent(baseX,  0,         minTurns);
+    const finalY = this.nextEquivalent(baseY,  target.ry, minTurns);
+    const finalZ = this.nextEquivalent(baseZ,  target.rz, minTurns);
+
+    // Drive the roll with the Web Animations API. CSS transitions on
+    // transforms whose angles come from CSS variables aren't reliable on
+    // mobile when the rotation spans multiple full revolutions — many
+    // engines decompose to a shortest-path matrix and the spin disappears.
+    // WAA receives explicit transform strings per keyframe so the engine
+    // interpolates the rotation values directly.
+    const diceEl = this.diceElRef()?.nativeElement;
+    if (diceEl && !this.prefersReducedMotion()) {
+      diceEl.getAnimations().forEach((a) => a.cancel());
+      diceEl.animate(
+        [
+          { transform: `rotateX(${baseX}deg) rotateY(${baseY}deg) rotateZ(${baseZ}deg)` },
+          { transform: `rotateX(${finalX}deg) rotateY(${finalY}deg) rotateZ(${finalZ}deg)` },
+        ],
+        {
+          duration: 1700,
+          easing: 'cubic-bezier(0.34, 1.06, 0.46, 1)',
+          fill: 'forwards',
+        },
+      );
+    }
+
+    // Update signals so the CSS-var-based transform on .dice matches
+    // the final orientation. While the WAA animation is filling forwards,
+    // its effect overrides this; once the animation is cancelled below
+    // the CSS value takes over without any visible jump.
+    this.rotX.set(finalX);
+    this.rotY.set(finalY);
+    this.rotZ.set(finalZ);
 
     window.setTimeout(() => {
+      // Release the WAA effect so future updates (the teleport's source-rect
+      // measurement, idle-tilt on hover) interact with the regular CSS rule.
+      diceEl?.getAnimations().forEach((a) => a.cancel());
+
       this.result.set(picked);
       this.landedFace.set(facePicked + 1);
       this.rolling.set(false);
@@ -434,6 +469,11 @@ export class DiceRollerComponent {
         this.jumpToResult();
       }, DiceRollerComponent.AUTO_SUMMON_PAUSE_MS);
     }, 1700);
+  }
+
+  private prefersReducedMotion(): boolean {
+    return typeof window !== 'undefined'
+      && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
   }
 
   private cancelAutoSummon(): void {
