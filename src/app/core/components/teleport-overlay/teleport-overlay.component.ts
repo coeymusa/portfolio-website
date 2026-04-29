@@ -135,6 +135,11 @@ import {
             black 42%,
             black 70%,
             transparent 88%);
+    }
+    /* Only spin while the overlay is active — otherwise it would burn frames
+       continuously even though it's invisible (visibility: hidden doesn't
+       suspend running animations). */
+    .overlay.active .portal-ring {
       animation: portal-spin 1.6s linear infinite;
     }
 

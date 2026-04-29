@@ -71,7 +71,7 @@ import { TeleportService } from '../../core/services/teleport.service';
           </header>
 
           <div class="deck-wrap">
-            <div class="deck">
+            <div class="deck" [class.draw-active]="isDrawingOrRevealed()">
               @for (project of projects; track project.id; let i = $index) {
                 <div #card
                      class="card"
@@ -90,7 +90,7 @@ import { TeleportService } from '../../core/services/teleport.service';
                   <div class="card-face card-front">
                     <div class="front-frame">
                       <span class="card-numeral nw">{{ romans[i] }}</span>
-                      <div class="card-icon" [innerHTML]="iconSvg(project)"></div>
+                      <div class="card-icon" [innerHTML]="iconSvgs[i]"></div>
                       <span class="card-title">{{ project.title }}</span>
                       <span class="card-numeral se">{{ romans[i] }}</span>
                     </div>
@@ -507,6 +507,14 @@ import { TeleportService } from '../../core/services/teleport.service';
       margin-bottom: 0.5rem;
     }
 
+    /* While the chosen card is being drawn / revealed, every other card
+       fades out so it can't sit visually in front of the rising card. */
+    .deck.draw-active .card:not(.is-drawn) {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+    }
+
     /* ================ EXP CONTROLS ================ */
     .exp-controls {
       display: flex;
@@ -585,6 +593,10 @@ export class CardOracleComponent {
   readonly projects: Project[] = PROJECTS;
   readonly romans = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII'];
 
+  /** Pre-trusted SVG markup per project — computed once so [innerHTML] doesn't
+   *  recreate SafeHtml on every change-detection pass. */
+  readonly iconSvgs: SafeHtml[];
+
   readonly expanded = signal(false);
   /** Two-step show so we can fade in via CSS transition. */
   readonly expandedVisible = signal(false);
@@ -629,11 +641,17 @@ export class CardOracleComponent {
     }
   });
 
-  iconSvg(project: Project): SafeHtml {
-    return this.sanitizer.bypassSecurityTrustHtml(
-      `<svg viewBox="0 0 24 24">${project.icon}</svg>`,
+  constructor() {
+    this.iconSvgs = this.projects.map((p) =>
+      this.sanitizer.bypassSecurityTrustHtml(
+        `<svg viewBox="0 0 24 24">${p.icon}</svg>`,
+      ),
     );
   }
+
+  readonly isDrawingOrRevealed = computed(() =>
+    this.phase() === 'drawing' || this.phase() === 'revealed',
+  );
 
   // ============== expand / collapse ==============
 
@@ -685,10 +703,12 @@ export class CardOracleComponent {
     this.phase.set('collapsing');
     await this.collapse_(cards, pickIdx);
 
+    // Set drawnIndex BEFORE drawing so .is-drawn / .draw-active engage and
+    // every other card fades out, leaving only the chosen card visible.
+    this.drawnIndex.set(pickIdx);
     this.phase.set('drawing');
     await this.drawCard(cards, pickIdx);
 
-    this.drawnIndex.set(pickIdx);
     this.phase.set('revealed');
 
     await this.sleep(1700);
