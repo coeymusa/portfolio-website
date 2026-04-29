@@ -1,10 +1,14 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  ElementRef,
   computed,
+  inject,
   signal,
+  viewChild,
 } from '@angular/core';
 import { PROJECTS, Project } from '../../../core/models/project.model';
+import { TeleportService } from '../../../core/services/teleport.service';
 
 @Component({
   selector: 'app-dice-roller',
@@ -18,9 +22,11 @@ import { PROJECTS, Project } from '../../../core/models/project.model';
       </p>
 
       <button
+        #diceButton
         class="dice-button"
+        [class.teleporting]="teleporting()"
         (click)="roll()"
-        [disabled]="rolling()"
+        [disabled]="rolling() || teleporting()"
         [attr.aria-label]="rolling() ? 'Rolling…' : 'Roll the d8 to pick a random project'"
       >
         <span
@@ -109,6 +115,12 @@ import { PROJECTS, Project } from '../../../core/models/project.model';
     .dice-button:disabled { cursor: progress; }
     .dice-button:hover:not(:disabled) .dice {
       animation: idle-tilt 1.4s ease-in-out infinite;
+    }
+    .dice-button.teleporting {
+      opacity: 0;
+      transform: scale(0.7);
+      transition: opacity 0.55s ease-out, transform 0.55s ease-out;
+      pointer-events: none;
     }
     .dice-button:focus-visible { outline: none; }
     .dice-button:focus-visible .dice {
@@ -325,16 +337,23 @@ import { PROJECTS, Project } from '../../../core/models/project.model';
   `],
 })
 export class DiceRollerComponent {
+  private readonly teleport = inject(TeleportService);
+
   readonly projects: Project[] = PROJECTS;
+  private readonly numerals = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII'];
 
   readonly rolling = signal(false);
   readonly result = signal<Project | null>(null);
   /** Face numeral the dice settled on (1–8); 0 when no roll yet / mid-roll. */
   readonly landedFace = signal(0);
+  /** True from the moment we hand off to the teleport overlay until it ends. */
+  readonly teleporting = signal(false);
 
   readonly rotX = signal(-22);
   readonly rotY = signal(32);
   readonly rotZ = signal(0);
+
+  private readonly diceButtonRef = viewChild<ElementRef<HTMLButtonElement>>('diceButton');
 
   /**
    * Per-face settling Euler angles (degrees). Applying
@@ -402,21 +421,34 @@ export class DiceRollerComponent {
   }
 
   jumpToResult(): void {
-    const picked = this.result();
-    if (!picked) return;
-    const projects = document.getElementById('projects');
-    if (!projects) return;
-    projects.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (this.teleporting()) return;
 
+    const picked = this.result();
+    const face = this.landedFace();
+    if (!picked || face === 0) return;
+
+    const button = this.diceButtonRef()?.nativeElement;
+    if (!button) return;
+
+    const idx = PROJECTS.findIndex((p) => p.id === picked.id);
+    if (idx < 0) return;
+
+    this.teleporting.set(true);
+
+    this.teleport.summon({
+      project: picked,
+      projectIndex: idx,
+      faceNumeral: this.numerals[face - 1] ?? String(face),
+      sourceRect: button.getBoundingClientRect(),
+      accent: picked.accent,
+    });
+
+    // Reset our local state once the cinematic completes (~2.7s),
+    // so the next visit to the hero finds a fresh oracle.
     window.setTimeout(() => {
-      const all = projects.querySelectorAll('app-project-card');
-      const idx = PROJECTS.findIndex((p) => p.id === picked.id);
-      const target = all[idx] as HTMLElement | undefined;
-      if (target) {
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        target.classList.add('fate-glow');
-        window.setTimeout(() => target.classList.remove('fate-glow'), 2400);
-      }
-    }, 600);
+      this.teleporting.set(false);
+      this.result.set(null);
+      this.landedFace.set(0);
+    }, 3000);
   }
 }

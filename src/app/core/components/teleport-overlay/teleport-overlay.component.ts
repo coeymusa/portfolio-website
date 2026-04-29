@@ -1,0 +1,369 @@
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  PLATFORM_ID,
+  effect,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import {
+  TeleportRequest,
+  TeleportService,
+} from '../../services/teleport.service';
+
+/**
+ * Full-screen cinematic overlay played when the dice oracle picks a project.
+ *
+ * Sequence (~2.5s):
+ *   1. Backdrop dims the page.
+ *   2. A spectral copy of the rolled face rises from the dice's location to
+ *      the centre of the viewport, glowing.
+ *   3. A swirling ember portal opens beneath it.
+ *   4. The face plummets into the portal, spinning down to a point.
+ *   5. The portal collapses with a flash of light.
+ *   6. While the flash hides the page, we scroll to the chosen project.
+ *   7. Backdrop fades out, project card receives a `.fate-glow` impact.
+ *
+ * Honors `prefers-reduced-motion` by skipping the animation and scrolling
+ * directly.
+ */
+@Component({
+  selector: 'app-teleport-overlay',
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+    <div class="overlay" [class.active]="active()">
+      <div class="backdrop" #backdrop></div>
+
+      <div class="portal" #portal>
+        <span class="portal-ring"></span>
+        <span class="portal-core"></span>
+      </div>
+
+      <div class="ghost" #ghost
+           [style.--accent]="accent()">
+        <span class="ghost-numeral">{{ numeral() }}</span>
+      </div>
+
+      <div class="flash" #flash></div>
+    </div>
+  `,
+  styles: [`
+    :host { display: contents; }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9000;
+      visibility: hidden;
+      contain: layout paint;
+    }
+    .overlay.active { visibility: visible; }
+
+    /* ---------------- backdrop ---------------- */
+    .backdrop {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at center,
+          rgba(15, 14, 12, 0.55) 0%,
+          rgba(10, 9, 7, 0.96) 78%);
+      opacity: 0;
+      will-change: opacity;
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
+    }
+
+    /* ---------------- portal ---------------- */
+    .portal {
+      position: fixed;
+      width: 360px;
+      height: 360px;
+      left: -180px;     /* element's centre is at left:0 */
+      top: -180px;      /* element's centre is at top:0  */
+      opacity: 0;
+      transform: translate(0, 0) scale(0);
+      will-change: transform, opacity;
+      pointer-events: none;
+    }
+
+    .portal-ring,
+    .portal-core {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+    }
+
+    .portal-ring {
+      background:
+        conic-gradient(
+          from 0deg,
+          rgba(255, 107, 53, 0.95) 0%,
+          rgba(255, 200, 130, 0.75) 18%,
+          rgba(255, 107, 53, 0.4)   38%,
+          rgba(60, 20, 8, 0.85)     55%,
+          rgba(255, 107, 53, 0.95)  82%,
+          rgba(255, 200, 130, 0.6)  92%,
+          rgba(255, 107, 53, 0.95) 100%);
+      filter: blur(6px) drop-shadow(0 0 30px rgba(255, 107, 53, 0.6));
+      mask: radial-gradient(circle at center,
+            transparent 36%,
+            black 42%,
+            black 70%,
+            transparent 88%);
+      -webkit-mask: radial-gradient(circle at center,
+            transparent 36%,
+            black 42%,
+            black 70%,
+            transparent 88%);
+      animation: portal-spin 1.6s linear infinite;
+    }
+
+    .portal-core {
+      background:
+        radial-gradient(circle at center,
+          #050402 0%,
+          #050402 36%,
+          rgba(40, 12, 4, 0.9) 46%,
+          transparent 65%);
+      box-shadow:
+        inset 0 0 60px rgba(0, 0, 0, 0.85),
+        0 0 80px rgba(255, 107, 53, 0.55);
+    }
+
+    @keyframes portal-spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ---------------- ghost (rising face) ---------------- */
+    .ghost {
+      --accent: var(--ember, #ff6b35);
+
+      position: fixed;
+      width: 140px;
+      height: 121px;
+      left: -70px;
+      top: -60px;
+
+      box-sizing: border-box;
+      padding-top: 42px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      background: linear-gradient(160deg, var(--accent) 0%, #b54620 78%);
+      border: 2px solid var(--paper, #f4ecd8);
+      box-shadow:
+        0 0 30px rgba(255, 107, 53, 0.7),
+        0 0 60px rgba(255, 107, 53, 0.35),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.3),
+        inset 4px 4px 14px rgba(0, 0, 0, 0.25);
+      clip-path: polygon(50% 1%, 99% 99%, 1% 99%);
+
+      opacity: 0;
+      transform: translate(0, 0) scale(0.5);
+      will-change: transform, opacity;
+    }
+
+    .ghost-numeral {
+      font-family: var(--font-display, Georgia, serif);
+      font-variation-settings: 'opsz' 144, 'WONK' 1;
+      font-style: italic;
+      font-weight: 400;
+      font-size: 2.6rem;
+      letter-spacing: -0.05em;
+      color: var(--ink, #0a0907);
+      text-shadow: 0 0 10px rgba(255, 240, 200, 0.55);
+    }
+
+    /* ---------------- flash ---------------- */
+    .flash {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      width: 220vmax;
+      height: 220vmax;
+      transform: translate(-50%, -50%) scale(0);
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at center,
+          rgba(255, 220, 160, 0.95) 0%,
+          rgba(255, 140, 70, 0.55) 22%,
+          rgba(255, 107, 53, 0.18) 46%,
+          transparent 75%);
+      opacity: 0;
+      will-change: transform, opacity;
+      mix-blend-mode: screen;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .overlay { display: none !important; }
+    }
+  `],
+})
+export class TeleportOverlayComponent {
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly teleport = inject(TeleportService);
+  private readonly isBrowser = isPlatformBrowser(this.platformId);
+
+  readonly active = signal(false);
+  readonly numeral = signal('');
+  readonly accent = signal('var(--ember)');
+
+  private readonly backdropRef = viewChild.required<ElementRef<HTMLElement>>('backdrop');
+  private readonly portalRef = viewChild.required<ElementRef<HTMLElement>>('portal');
+  private readonly ghostRef = viewChild.required<ElementRef<HTMLElement>>('ghost');
+  private readonly flashRef = viewChild.required<ElementRef<HTMLElement>>('flash');
+
+  private busy = false;
+
+  constructor() {
+    effect(() => {
+      const req = this.teleport.request();
+      if (req && this.isBrowser && !this.busy) {
+        void this.runTeleport(req);
+      }
+    });
+  }
+
+  private async runTeleport(req: TeleportRequest): Promise<void> {
+    this.busy = true;
+
+    if (this.prefersReducedMotion()) {
+      this.scrollToTarget(req);
+      this.teleport.clear();
+      this.busy = false;
+      return;
+    }
+
+    this.numeral.set(req.faceNumeral);
+    this.accent.set(req.accent);
+    this.active.set(true);
+
+    // Wait for the overlay to commit to the DOM with the new state.
+    await this.frame();
+
+    const backdrop = this.backdropRef().nativeElement;
+    const portal = this.portalRef().nativeElement;
+    const ghost = this.ghostRef().nativeElement;
+    const flash = this.flashRef().nativeElement;
+
+    const srcX = req.sourceRect.left + req.sourceRect.width / 2;
+    const srcY = req.sourceRect.top + req.sourceRect.height / 2;
+    const cx = window.innerWidth / 2;
+    const cy = window.innerHeight / 2;
+    const portalY = cy + 130;
+
+    // -------- 1. Backdrop in + ghost rises (0 → 850 ms) --------
+    backdrop.animate(
+      [{ opacity: 0 }, { opacity: 1 }],
+      { duration: 380, fill: 'forwards', easing: 'ease-out' },
+    );
+
+    ghost.animate(
+      [
+        { transform: `translate(${srcX}px, ${srcY}px) scale(0.45) rotate(-15deg)`, opacity: 0 },
+        { transform: `translate(${srcX}px, ${srcY - 18}px) scale(0.65) rotate(0deg)`, opacity: 1, offset: 0.16 },
+        { transform: `translate(${cx}px, ${cy - 35}px) scale(1.45) rotate(0deg)`, opacity: 1 },
+      ],
+      { duration: 850, easing: 'cubic-bezier(0.2, 0.8, 0.3, 1.15)', fill: 'forwards' },
+    );
+    await this.sleep(850);
+
+    // -------- 2. Portal opens beneath (850 → 1180 ms) --------
+    portal.animate(
+      [
+        { transform: `translate(${cx}px, ${portalY}px) scale(0)`,    opacity: 0 },
+        { transform: `translate(${cx}px, ${portalY}px) scale(1.05)`, opacity: 1, offset: 0.7 },
+        { transform: `translate(${cx}px, ${portalY}px) scale(1)`,    opacity: 1 },
+      ],
+      { duration: 380, easing: 'cubic-bezier(0.34, 1.45, 0.64, 1)', fill: 'forwards' },
+    );
+    await this.sleep(220);
+
+    // -------- 3. Ghost plummets into portal (1070 → 1670 ms) --------
+    ghost.animate(
+      [
+        { transform: `translate(${cx}px, ${cy - 35}px) scale(1.45) rotate(0deg)`,   opacity: 1 },
+        { transform: `translate(${cx}px, ${cy + 60}px) scale(0.95) rotate(220deg)`, opacity: 1, offset: 0.45 },
+        { transform: `translate(${cx}px, ${portalY - 6}px) scale(0.04) rotate(820deg)`, opacity: 0 },
+      ],
+      { duration: 600, easing: 'cubic-bezier(0.55, 0.05, 0.85, 0.35)', fill: 'forwards' },
+    );
+    await this.sleep(600);
+
+    // -------- 4. Portal collapses + flash + scroll (1670 → 2070 ms) --------
+    portal.animate(
+      [
+        { transform: `translate(${cx}px, ${portalY}px) scale(1)`,    opacity: 1 },
+        { transform: `translate(${cx}px, ${portalY}px) scale(1.25)`, opacity: 0.4, offset: 0.4 },
+        { transform: `translate(${cx}px, ${portalY}px) scale(0)`,    opacity: 0 },
+      ],
+      { duration: 380, easing: 'cubic-bezier(0.55, 0.1, 0.85, 0.4)', fill: 'forwards' },
+    );
+
+    flash.animate(
+      [
+        { opacity: 0,    transform: 'translate(-50%, -50%) scale(0)' },
+        { opacity: 0.95, transform: 'translate(-50%, -50%) scale(0.55)', offset: 0.32 },
+        { opacity: 0,    transform: 'translate(-50%, -50%) scale(1.4)' },
+      ],
+      { duration: 620, fill: 'forwards', easing: 'cubic-bezier(0.4, 0, 0.2, 1)' },
+    );
+
+    await this.sleep(180);
+
+    // Scroll under cover of the flash so the page jump is invisible.
+    this.scrollToTarget(req);
+
+    await this.sleep(440);
+
+    // -------- 5. Backdrop fades out (~2070 → 2670 ms) --------
+    backdrop.animate(
+      [{ opacity: 1 }, { opacity: 0 }],
+      { duration: 600, fill: 'forwards', easing: 'ease-in' },
+    );
+    await this.sleep(600);
+
+    this.active.set(false);
+    this.teleport.clear();
+    this.busy = false;
+  }
+
+  private scrollToTarget(req: TeleportRequest): void {
+    const projects = document.getElementById('projects');
+    if (!projects) return;
+
+    const cards = projects.querySelectorAll('app-project-card');
+    // The teleport request's projectIndex is the position in PROJECTS, which
+    // matches the rendered card order one-to-one.
+    const target = cards[req.projectIndex] as HTMLElement | undefined;
+    if (!target) return;
+
+    target.scrollIntoView({ behavior: 'auto', block: 'start' });
+    // Re-trigger the impact glow even if it's already on (e.g. successive rolls).
+    target.classList.remove('fate-glow');
+    // Force reflow so the animation restarts.
+    void target.offsetWidth;
+    target.classList.add('fate-glow');
+    window.setTimeout(() => target.classList.remove('fate-glow'), 2600);
+  }
+
+  private frame(): Promise<void> {
+    return new Promise((resolve) => requestAnimationFrame(() => resolve()));
+  }
+
+  private sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => window.setTimeout(resolve, ms));
+  }
+
+  private prefersReducedMotion(): boolean {
+    return typeof window !== 'undefined'
+      && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
+  }
+}
