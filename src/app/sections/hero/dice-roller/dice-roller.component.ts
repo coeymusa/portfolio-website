@@ -359,7 +359,7 @@ export class DiceRollerComponent {
   private autoSummonTimer: number | null = null;
 
   /** Dramatic pause between dice settling and the teleport firing. */
-  private static readonly AUTO_SUMMON_PAUSE_MS = 1900;
+  private static readonly AUTO_SUMMON_PAUSE_MS = 1200;
   /** Total runtime of the teleport cinematic (in TeleportOverlayComponent). */
   private static readonly TELEPORT_DURATION_MS = 4700;
 
