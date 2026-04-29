@@ -30,14 +30,14 @@ import { PROJECTS, Project } from '../../../core/models/project.model';
           [style.--ry]="rotY() + 'deg'"
           [style.--rz]="rotZ() + 'deg'"
         >
-          <span class="face f1">I</span>
-          <span class="face f2">II</span>
-          <span class="face f3">III</span>
-          <span class="face f4">IV</span>
-          <span class="face f5">V</span>
-          <span class="face f6">VI</span>
-          <span class="face f7">VII</span>
-          <span class="face f8">VIII</span>
+          <span class="face f1" [class.landed]="landedFace() === 1">I</span>
+          <span class="face f2" [class.landed]="landedFace() === 2">II</span>
+          <span class="face f3" [class.landed]="landedFace() === 3">III</span>
+          <span class="face f4" [class.landed]="landedFace() === 4">IV</span>
+          <span class="face f5" [class.landed]="landedFace() === 5">V</span>
+          <span class="face f6" [class.landed]="landedFace() === 6">VI</span>
+          <span class="face f7" [class.landed]="landedFace() === 7">VII</span>
+          <span class="face f8" [class.landed]="landedFace() === 8">VIII</span>
         </span>
 
         <span class="dice-shadow" [class.rolling]="rolling()"></span>
@@ -173,6 +173,29 @@ import { PROJECTS, Project } from '../../../core/models/project.model';
       /* equilateral triangle, slightly wonky for the hand-drawn feel */
       clip-path: polygon(50% 1%, 99% 99%, 1% 99%);
       backface-visibility: hidden;
+
+      transition:
+        background 0.55s ease,
+        border-color 0.55s ease,
+        box-shadow 0.55s ease,
+        color 0.55s ease;
+    }
+
+    /* The face the dice has settled on — glows in ember */
+    .face.landed {
+      background: linear-gradient(160deg, var(--ember) 0%, #b54620 78%);
+      color: var(--ink);
+      border-color: var(--paper);
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.35),
+        inset 4px 4px 14px rgba(0, 0, 0, 0.25),
+        inset -2px -2px 6px rgba(255, 255, 255, 0.12),
+        0 0 22px rgba(255, 107, 53, 0.55);
+      animation: face-glow 2.4s ease-in-out infinite;
+    }
+    @keyframes face-glow {
+      0%, 100% { filter: drop-shadow(0 0 8px rgba(255, 107, 53, 0.45)); }
+      50%      { filter: drop-shadow(0 0 16px rgba(255, 107, 53, 0.85)); }
     }
 
     /* === 8 face transforms — regular octahedron, derived by hand === */
@@ -306,10 +329,33 @@ export class DiceRollerComponent {
 
   readonly rolling = signal(false);
   readonly result = signal<Project | null>(null);
+  /** Face numeral the dice settled on (1–8); 0 when no roll yet / mid-roll. */
+  readonly landedFace = signal(0);
 
   readonly rotX = signal(-22);
   readonly rotY = signal(32);
   readonly rotZ = signal(0);
+
+  /**
+   * Per-face settling Euler angles (degrees). Applying
+   *   rotateX(0) rotateY(ry) rotateZ(rz)
+   * to the dice brings face k's outward normal to +Z (toward camera),
+   * so face k ends up squarely facing the viewer.
+   *
+   * Top 4 faces (apex at +Y in math frame): β = arctan(√2) ≈ 54.74°
+   * Bottom 4 faces (apex at −Y): β = 180° − 54.74° = 125.26°
+   * α picks the octant: ±45° for the +X side, ±135° for the −X side.
+   */
+  private readonly settles = [
+    { ry:  54.74, rz:  -45 }, // F1  top, +X +Z
+    { ry:  54.74, rz: -135 }, // F2  top, −X +Z
+    { ry: 125.26, rz: -135 }, // F3  top, −X −Z
+    { ry: 125.26, rz:  -45 }, // F4  top, +X −Z
+    { ry:  54.74, rz:   45 }, // F5  bot, +X +Z
+    { ry:  54.74, rz:  135 }, // F6  bot, −X +Z
+    { ry: 125.26, rz:  135 }, // F7  bot, −X −Z
+    { ry: 125.26, rz:   45 }, // F8  bot, +X −Z
+  ];
 
   resultIndex = computed(() => {
     const r = this.result();
@@ -321,27 +367,38 @@ export class DiceRollerComponent {
     if (this.rolling()) return;
     this.rolling.set(true);
     this.result.set(null);
+    this.landedFace.set(0);
 
-    const picked = this.projects[Math.floor(Math.random() * this.projects.length)];
+    const facePicked = Math.floor(Math.random() * this.projects.length);
+    const picked = this.projects[facePicked];
+    const target = this.settles[facePicked];
 
     const baseX = this.rotX();
     const baseY = this.rotY();
     const baseZ = this.rotZ();
-    const turnsX = (Math.floor(Math.random() * 2) + 3) * 360;
-    const turnsY = (Math.floor(Math.random() * 2) + 3) * 360;
-    const turnsZ = (Math.floor(Math.random() * 2) + 2) * 360;
-    const wiggleX = -22 + (Math.random() * 44 - 22);
-    const wiggleY = 32 + (Math.random() * 60 - 30);
-    const wiggleZ = Math.random() * 30 - 15;
+    const minTurns = 3 + Math.floor(Math.random() * 2); // 3 or 4 full revolutions
 
-    this.rotX.set(baseX + turnsX + wiggleX);
-    this.rotY.set(baseY + turnsY + wiggleY);
-    this.rotZ.set(baseZ + turnsZ + wiggleZ);
+    // Each axis spins ≥ minTurns full turns and lands on its specific target,
+    // so the dice physically settles with the picked face up.
+    this.rotX.set(this.nextEquivalent(baseX,  0,         minTurns));
+    this.rotY.set(this.nextEquivalent(baseY,  target.ry, minTurns));
+    this.rotZ.set(this.nextEquivalent(baseZ,  target.rz, minTurns));
 
     window.setTimeout(() => {
       this.result.set(picked);
+      this.landedFace.set(facePicked + 1);
       this.rolling.set(false);
     }, 1700);
+  }
+
+  /**
+   * Smallest angle ≥ currentDeg + minTurns·360 that is ≡ targetMod360 (mod 360).
+   * Lets us animate at least N full turns and finish on a precise target.
+   */
+  private nextEquivalent(currentDeg: number, targetMod360: number, minTurns: number): number {
+    const minFinal = currentDeg + minTurns * 360;
+    const k = Math.ceil((minFinal - targetMod360) / 360);
+    return targetMod360 + k * 360;
   }
 
   jumpToResult(): void {
