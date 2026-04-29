@@ -14,14 +14,14 @@ import { PROJECTS, Project } from '../../../core/models/project.model';
     <div class="dice-stage" [class.has-result]="!!result()">
       <p class="oracle-prompt">
         <span class="oracle-label">ORACLE</span>
-        <span class="oracle-sub">cast a fate</span>
+        <span class="oracle-sub">cast a fate · d8</span>
       </p>
 
       <button
         class="dice-button"
         (click)="roll()"
         [disabled]="rolling()"
-        [attr.aria-label]="rolling() ? 'Rolling…' : 'Roll the dice to pick a random project'"
+        [attr.aria-label]="rolling() ? 'Rolling…' : 'Roll the d8 to pick a random project'"
       >
         <span
           class="dice"
@@ -30,15 +30,16 @@ import { PROJECTS, Project } from '../../../core/models/project.model';
           [style.--ry]="rotY() + 'deg'"
           [style.--rz]="rotZ() + 'deg'"
         >
-          <span class="face f-front" data-face="I">{{ romans[0] }}</span>
-          <span class="face f-back"  data-face="VI">{{ romans[5] }}</span>
-          <span class="face f-right" data-face="II">{{ romans[1] }}</span>
-          <span class="face f-left"  data-face="V">{{ romans[4] }}</span>
-          <span class="face f-top"   data-face="III">{{ romans[2] }}</span>
-          <span class="face f-bot"   data-face="IV">{{ romans[3] }}</span>
+          <span class="face f1">I</span>
+          <span class="face f2">II</span>
+          <span class="face f3">III</span>
+          <span class="face f4">IV</span>
+          <span class="face f5">V</span>
+          <span class="face f6">VI</span>
+          <span class="face f7">VII</span>
+          <span class="face f8">VIII</span>
         </span>
 
-        <!-- Sketchy under-shadow -->
         <span class="dice-shadow" [class.rolling]="rolling()"></span>
       </button>
 
@@ -60,9 +61,7 @@ import { PROJECTS, Project } from '../../../core/models/project.model';
     </div>
   `,
   styles: [`
-    :host {
-      display: block;
-    }
+    :host { display: block; }
 
     .dice-stage {
       display: flex;
@@ -72,7 +71,6 @@ import { PROJECTS, Project } from '../../../core/models/project.model';
       padding-top: 1rem;
     }
 
-    /* ---- Oracle prompt ---- */
     .oracle-prompt {
       display: flex;
       flex-direction: column;
@@ -82,14 +80,12 @@ import { PROJECTS, Project } from '../../../core/models/project.model';
       border-bottom: 1px solid var(--rule);
       width: 100%;
     }
-
     .oracle-label {
       font-family: var(--font-mono);
       font-size: 0.65rem;
       letter-spacing: 0.25em;
       color: var(--brass);
     }
-
     .oracle-sub {
       font-family: var(--font-display);
       font-style: italic;
@@ -97,7 +93,6 @@ import { PROJECTS, Project } from '../../../core/models/project.model';
       color: var(--text-mute);
     }
 
-    /* ---- Dice button (the stage) ---- */
     .dice-button {
       position: relative;
       width: 130px;
@@ -111,27 +106,19 @@ import { PROJECTS, Project } from '../../../core/models/project.model';
       transition: transform 0.3s;
       margin-top: 0.5rem;
     }
-
-    .dice-button:disabled {
-      cursor: progress;
-    }
-
+    .dice-button:disabled { cursor: progress; }
     .dice-button:hover:not(:disabled) .dice {
       animation: idle-tilt 1.4s ease-in-out infinite;
     }
-
-    .dice-button:focus-visible {
-      outline: none;
-    }
-
+    .dice-button:focus-visible { outline: none; }
     .dice-button:focus-visible .dice {
       filter: drop-shadow(0 0 8px var(--ember));
     }
 
-    /* ---- The 3D dice ---- */
+    /* === The 3D octahedron === */
     .dice {
-      --size: 86px;
-      --half: 43px;
+      --edge: 84;                              /* unitless edge length, px-equivalent */
+      --tx: calc(var(--edge) * 0.2357);        /* edge × √2/6 = centroid distance */
       --rx: -22deg;
       --ry: 32deg;
       --rz: 0deg;
@@ -139,9 +126,8 @@ import { PROJECTS, Project } from '../../../core/models/project.model';
       position: absolute;
       top: 50%;
       left: 50%;
-      width: var(--size);
-      height: var(--size);
-      margin: calc(var(--half) * -1) 0 0 calc(var(--half) * -1);
+      width: 0;
+      height: 0;
       transform-style: preserve-3d;
       transform:
         rotateX(var(--rx))
@@ -149,67 +135,59 @@ import { PROJECTS, Project } from '../../../core/models/project.model';
         rotateZ(var(--rz));
       transition: transform 1.6s cubic-bezier(0.32, 1.18, 0.42, 0.96);
     }
-
     .dice.rolling {
       transition: transform 1.65s cubic-bezier(0.34, 1.06, 0.46, 1);
     }
 
-    /* ---- The 6 faces ---- */
+    /* === Triangular face === */
     .face {
       position: absolute;
-      inset: 0;
+      box-sizing: border-box;
+      width: calc(var(--edge) * 1px);
+      height: calc(var(--edge) * 0.866 * 1px);     /* √3/2 */
+      /* place triangle's centroid (50%, 66.67%) at (0, 0) of dice */
+      top: calc(var(--edge) * -0.5773 * 1px);      /* −2H/3 */
+      left: calc(var(--edge) * -0.5 * 1px);
+      transform-origin: 50% 66.67%;
+
       display: flex;
       align-items: center;
       justify-content: center;
+      padding-top: calc(var(--edge) * 0.289 * 1px); /* push numeral toward centroid */
+
       font-family: var(--font-display);
       font-variation-settings: 'opsz' 144, 'WONK' 1;
-      font-size: 1.85rem;
+      font-size: 1.4rem;
       font-style: italic;
       font-weight: 300;
+      letter-spacing: -0.05em;
       color: var(--paper);
+
       background: linear-gradient(160deg, var(--ink-warm) 0%, var(--ink) 75%);
       border: 1.5px solid var(--ember);
       box-shadow:
         inset 0 0 0 1px rgba(255, 107, 53, 0.15),
         inset 6px 6px 18px rgba(0, 0, 0, 0.55),
         inset -2px -2px 6px rgba(255, 107, 53, 0.08);
+
+      /* equilateral triangle, slightly wonky for the hand-drawn feel */
+      clip-path: polygon(50% 1%, 99% 99%, 1% 99%);
       backface-visibility: hidden;
-      letter-spacing: -0.05em;
-
-      /* Wobbly hand-drawn corners using clip-path */
-      clip-path: polygon(
-        2% 4%,
-        97% 1%,
-        99% 96%,
-        4% 99%
-      );
     }
 
-    /* Hand-drawn dot decoration on each face */
-    .face::before,
-    .face::after {
-      content: '';
-      position: absolute;
-      width: 4px;
-      height: 4px;
-      background: var(--ember);
-      border-radius: 50%;
-      opacity: 0.4;
-    }
+    /* === 8 face transforms — regular octahedron, derived by hand === */
+    /* Top 4 (apex at +Y), azimuths 45°, 135°, 225°, 315° */
+    .f1 { transform: matrix3d(-0.7071, 0, 0.7071, 0,  0.4082, 0.8165, 0.4082, 0,  0.5774, -0.5774, 0.5774, 0,  var(--tx), calc(var(--tx) * -1), var(--tx), 1); }
+    .f2 { transform: matrix3d(-0.7071, 0,-0.7071, 0, -0.4082, 0.8165, 0.4082, 0, -0.5774, -0.5774, 0.5774, 0,  calc(var(--tx) * -1), calc(var(--tx) * -1), var(--tx), 1); }
+    .f3 { transform: matrix3d( 0.7071, 0,-0.7071, 0, -0.4082, 0.8165,-0.4082, 0, -0.5774, -0.5774,-0.5774, 0,  calc(var(--tx) * -1), calc(var(--tx) * -1), calc(var(--tx) * -1), 1); }
+    .f4 { transform: matrix3d( 0.7071, 0, 0.7071, 0,  0.4082, 0.8165,-0.4082, 0,  0.5774, -0.5774,-0.5774, 0,  var(--tx), calc(var(--tx) * -1), calc(var(--tx) * -1), 1); }
+    /* Bottom 4 (apex at −Y), azimuths 45°, 135°, 225°, 315° */
+    .f5 { transform: matrix3d( 0.7071, 0,-0.7071, 0,  0.4082,-0.8165, 0.4082, 0,  0.5774,  0.5774, 0.5774, 0,  var(--tx), var(--tx), var(--tx), 1); }
+    .f6 { transform: matrix3d( 0.7071, 0, 0.7071, 0, -0.4082,-0.8165, 0.4082, 0, -0.5774,  0.5774, 0.5774, 0,  calc(var(--tx) * -1), var(--tx), var(--tx), 1); }
+    .f7 { transform: matrix3d(-0.7071, 0, 0.7071, 0, -0.4082,-0.8165,-0.4082, 0, -0.5774,  0.5774,-0.5774, 0,  calc(var(--tx) * -1), var(--tx), calc(var(--tx) * -1), 1); }
+    .f8 { transform: matrix3d(-0.7071, 0,-0.7071, 0,  0.4082,-0.8165,-0.4082, 0,  0.5774,  0.5774,-0.5774, 0,  var(--tx), var(--tx), calc(var(--tx) * -1), 1); }
 
-    .face::before { top: 6px; left: 6px; }
-    .face::after  { bottom: 6px; right: 6px; }
-
-    /* Numeral specific tweaks */
-    .face[data-face="VI"] { transform: rotateY(180deg) translateZ(var(--half)); }
-    .f-front { transform: translateZ(var(--half)); }
-    .f-back  { transform: rotateY(180deg) translateZ(var(--half)); }
-    .f-right { transform: rotateY( 90deg) translateZ(var(--half)); }
-    .f-left  { transform: rotateY(-90deg) translateZ(var(--half)); }
-    .f-top   { transform: rotateX( 90deg) translateZ(var(--half)); }
-    .f-bot   { transform: rotateX(-90deg) translateZ(var(--half)); }
-
-    /* ---- Shadow under die ---- */
+    /* === Shadow under die === */
     .dice-shadow {
       position: absolute;
       bottom: 6px;
@@ -222,12 +200,9 @@ import { PROJECTS, Project } from '../../../core/models/project.model';
       transition: opacity 0.3s, transform 0.3s;
       z-index: -1;
     }
+    .dice-shadow.rolling { animation: shadow-pulse 1.65s ease-in-out; }
 
-    .dice-shadow.rolling {
-      animation: shadow-pulse 1.65s ease-in-out;
-    }
-
-    /* ---- Result strip ---- */
+    /* === Result strip === */
     .result-strip {
       width: 100%;
       min-height: 60px;
@@ -242,20 +217,14 @@ import { PROJECTS, Project } from '../../../core/models/project.model';
       max-width: 100%;
       overflow: hidden;
     }
-
     .result-text {
       font-family: var(--font-display);
       font-size: 0.85rem;
       color: var(--text);
       max-width: 100%;
       overflow-wrap: break-word;
-
-      em {
-        font-style: italic;
-        color: var(--ember);
-      }
     }
-
+    .result-text em { font-style: italic; color: var(--ember); }
     .result-empty {
       font-family: var(--font-mono);
       font-size: 0.7rem;
@@ -263,19 +232,13 @@ import { PROJECTS, Project } from '../../../core/models/project.model';
       letter-spacing: 0.15em;
       text-transform: uppercase;
     }
-
     .result-line {
       display: flex;
       align-items: baseline;
       gap: 0.4rem;
       animation: fade-in 0.5s ease;
     }
-
-    .result-arrow {
-      color: var(--ember);
-      font-size: 1rem;
-    }
-
+    .result-arrow { color: var(--ember); font-size: 1rem; }
     .result-jump {
       font-family: var(--font-mono);
       font-size: 0.7rem;
@@ -289,17 +252,11 @@ import { PROJECTS, Project } from '../../../core/models/project.model';
       transition: all 0.3s;
       animation: fade-in 0.5s ease 0.1s both;
     }
+    .result-jump:hover { background: var(--ember); color: var(--ink); }
 
-    .result-jump:hover {
-      background: var(--ember);
-      color: var(--ink);
-    }
-
-    /* ---- Animations ---- */
+    /* === Animations === */
     @keyframes idle-tilt {
-      0%, 100% {
-        transform: rotateX(var(--rx)) rotateY(var(--ry)) rotateZ(var(--rz));
-      }
+      0%, 100% { transform: rotateX(var(--rx)) rotateY(var(--ry)) rotateZ(var(--rz)); }
       50% {
         transform:
           rotateX(calc(var(--rx) - 4deg))
@@ -307,122 +264,57 @@ import { PROJECTS, Project } from '../../../core/models/project.model';
           rotateZ(calc(var(--rz) + 1deg));
       }
     }
-
     @keyframes shadow-pulse {
       0%, 100% { opacity: 1; transform: translateX(-50%) scale(1); }
       30%      { opacity: 0.5; transform: translateX(-50%) scale(0.7); }
       60%      { opacity: 0.9; transform: translateX(-50%) scale(1.1); }
     }
-
     @keyframes fade-in {
       from { opacity: 0; transform: translateY(4px); }
       to   { opacity: 1; transform: translateY(0); }
     }
-
-    /* Reduced motion */
     @media (prefers-reduced-motion: reduce) {
-      .dice {
-        transition: none !important;
-      }
-      .dice-button:hover .dice {
-        animation: none !important;
-      }
-      .dice-shadow.rolling {
-        animation: none !important;
-      }
+      .dice { transition: none !important; }
+      .dice-button:hover .dice { animation: none !important; }
+      .dice-shadow.rolling { animation: none !important; }
     }
 
     /* Tablet — inline row */
     @media (max-width: 1024px) and (min-width: 641px) {
-      .dice-stage {
-        flex-direction: row;
-        align-items: center;
-        gap: 1.5rem;
-        flex-wrap: wrap;
-      }
-      .oracle-prompt {
-        flex-direction: row;
-        gap: 0.5rem;
-        border: none;
-        padding: 0;
-        width: auto;
-      }
-      .dice-button {
-        width: 110px;
-        height: 110px;
-      }
-      .dice {
-        --size: 72px;
-        --half: 36px;
-      }
-      .face {
-        font-size: 1.5rem;
-      }
-      .result-strip {
-        flex: 1;
-        min-width: 200px;
-        border: none;
-        padding: 0;
-        align-items: flex-start;
-        text-align: left;
-      }
+      .dice-stage { flex-direction: row; align-items: center; gap: 1.5rem; flex-wrap: wrap; }
+      .oracle-prompt { flex-direction: row; gap: 0.5rem; border: none; padding: 0; width: auto; }
+      .dice-button { width: 110px; height: 110px; }
+      .dice { --edge: 70; }
+      .face { font-size: 1.2rem; }
+      .result-strip { flex: 1; min-width: 200px; border: none; padding: 0; align-items: flex-start; text-align: left; }
     }
 
     /* Mobile — stacked, compact */
     @media (max-width: 640px) {
-      .dice-stage {
-        gap: 0.75rem;
-        padding-top: 0.5rem;
-        align-items: center;
-      }
-      .oracle-prompt {
-        flex-direction: row;
-        align-items: baseline;
-        gap: 0.6rem;
-        border: none;
-        padding: 0;
-        width: auto;
-      }
-      .dice-button {
-        width: 100px;
-        height: 100px;
-        margin-top: 0.25rem;
-      }
-      .dice {
-        --size: 64px;
-        --half: 32px;
-      }
-      .face {
-        font-size: 1.35rem;
-      }
-      .result-strip {
-        border: none;
-        padding-top: 0.5rem;
-        min-height: 40px;
-      }
-      .result-text {
-        font-size: 0.85rem;
-      }
+      .dice-stage { gap: 0.75rem; padding-top: 0.5rem; align-items: center; }
+      .oracle-prompt { flex-direction: row; align-items: baseline; gap: 0.6rem; border: none; padding: 0; width: auto; }
+      .dice-button { width: 100px; height: 100px; margin-top: 0.25rem; }
+      .dice { --edge: 60; }
+      .face { font-size: 1rem; }
+      .result-strip { border: none; padding-top: 0.5rem; min-height: 40px; }
+      .result-text { font-size: 0.85rem; }
     }
   `],
 })
 export class DiceRollerComponent {
   readonly projects: Project[] = PROJECTS;
-  readonly romans = ['I', 'II', 'III', 'IV', 'V', 'VI'];
 
   readonly rolling = signal(false);
   readonly result = signal<Project | null>(null);
 
-  // Cube rotation state (target end values for the transition)
   readonly rotX = signal(-22);
   readonly rotY = signal(32);
   readonly rotZ = signal(0);
 
-  // Index of result in PROJECTS array (1-based for display)
   resultIndex = computed(() => {
     const r = this.result();
     if (!r) return 0;
-    return PROJECTS.findIndex(p => p.id === r.id) + 1;
+    return PROJECTS.findIndex((p) => p.id === r.id) + 1;
   });
 
   roll(): void {
@@ -430,14 +322,12 @@ export class DiceRollerComponent {
     this.rolling.set(true);
     this.result.set(null);
 
-    // Pick a random project
     const picked = this.projects[Math.floor(Math.random() * this.projects.length)];
 
-    // Generate a "rolling" rotation: at least 3 full turns plus settle
     const baseX = this.rotX();
     const baseY = this.rotY();
     const baseZ = this.rotZ();
-    const turnsX = (Math.floor(Math.random() * 2) + 3) * 360; // 1080 to 1440
+    const turnsX = (Math.floor(Math.random() * 2) + 3) * 360;
     const turnsY = (Math.floor(Math.random() * 2) + 3) * 360;
     const turnsZ = (Math.floor(Math.random() * 2) + 2) * 360;
     const wiggleX = -22 + (Math.random() * 44 - 22);
@@ -448,7 +338,6 @@ export class DiceRollerComponent {
     this.rotY.set(baseY + turnsY + wiggleY);
     this.rotZ.set(baseZ + turnsZ + wiggleZ);
 
-    // After roll completes, settle and reveal pick
     window.setTimeout(() => {
       this.result.set(picked);
       this.rolling.set(false);
@@ -462,10 +351,9 @@ export class DiceRollerComponent {
     if (!projects) return;
     projects.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-    // Briefly highlight the chosen card after scroll
     window.setTimeout(() => {
       const all = projects.querySelectorAll('app-project-card');
-      const idx = PROJECTS.findIndex(p => p.id === picked.id);
+      const idx = PROJECTS.findIndex((p) => p.id === picked.id);
       const target = all[idx] as HTMLElement | undefined;
       if (target) {
         target.scrollIntoView({ behavior: 'smooth', block: 'start' });
