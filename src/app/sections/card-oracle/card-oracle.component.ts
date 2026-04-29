@@ -11,6 +11,16 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { PROJECTS, Project } from '../../core/models/project.model';
 import { TeleportService } from '../../core/services/teleport.service';
 
+/** Filled (rather than stroked) heart-and-crown for Mooncake's card. */
+const QUEEN_OF_HEARTS_SVG = `
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <path d="M 30 30 L 36 14 L 42 27 L 50 8 L 58 27 L 64 14 L 70 30 L 70 34 L 30 34 Z"/>
+  <circle cx="38" cy="22" r="1.5" style="fill: rgba(255, 220, 220, 0.65); stroke: none;"/>
+  <circle cx="50" cy="16" r="2"   style="fill: rgba(255, 230, 230, 0.8);  stroke: none;"/>
+  <circle cx="62" cy="22" r="1.5" style="fill: rgba(255, 220, 220, 0.65); stroke: none;"/>
+  <path d="M 50 92 C 30 80 14 62 14 47 C 14 37 22 30 30 30 C 38 30 45 35 50 42 C 55 35 62 30 70 30 C 78 30 86 37 86 47 C 86 62 70 80 50 92 Z"/>
+</svg>`;
+
 /**
  * Second oracle (parallel to the d8 dice). Lives in the hero sidebar as a
  * small stacked-deck button. Clicking opens a fullscreen overlay where the
@@ -98,10 +108,22 @@ import { TeleportService } from '../../core/services/teleport.service';
                   </div>
                   <div class="card-face card-front">
                     <div class="front-frame">
-                      <span class="card-numeral nw">{{ romans[i] }}</span>
-                      <div class="card-icon" [innerHTML]="iconSvgs[i]"></div>
+                      <span class="card-numeral nw">
+                        <span class="numeral-letter">{{ cornerLabels[i].label }}</span>
+                        @if (cornerLabels[i].suit) {
+                          <span class="numeral-suit">{{ cornerLabels[i].suit }}</span>
+                        }
+                      </span>
+                      <div class="card-icon"
+                           [class.is-queen]="project.id === 'mooncake'"
+                           [innerHTML]="iconSvgs[i]"></div>
                       <span class="card-title">{{ project.title }}</span>
-                      <span class="card-numeral se">{{ romans[i] }}</span>
+                      <span class="card-numeral se">
+                        <span class="numeral-letter">{{ cornerLabels[i].label }}</span>
+                        @if (cornerLabels[i].suit) {
+                          <span class="numeral-suit">{{ cornerLabels[i].suit }}</span>
+                        }
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -495,17 +517,27 @@ import { TeleportService } from '../../core/services/teleport.service';
     }
     .card-numeral {
       position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1;
+      color: var(--accent);
       font-family: var(--font-display);
+    }
+    .card-numeral.nw { top: 8px; left: 12px; }
+    .card-numeral.se { bottom: 8px; right: 12px; transform: rotate(180deg); }
+    .numeral-letter {
       font-variation-settings: 'opsz' 144, 'WONK' 1;
       font-style: italic;
       font-weight: 400;
       font-size: 1.4rem;
-      color: var(--accent);
       letter-spacing: -0.03em;
-      line-height: 1;
     }
-    .card-numeral.nw { top: 8px; left: 12px; }
-    .card-numeral.se { bottom: 8px; right: 12px; transform: rotate(180deg); }
+    .numeral-suit {
+      font-size: 0.95rem;
+      font-style: normal;
+      margin-top: -1px;
+    }
     .card-icon {
       grid-row: 2 / 3;
       align-self: center;
@@ -522,6 +554,11 @@ import { TeleportService } from '../../core/services/teleport.service';
       stroke-width: 1.3;
       stroke-linecap: round;
       stroke-linejoin: round;
+    }
+    /* Mooncake's Queen of Hearts is filled, not stroked. */
+    .card-icon.is-queen ::ng-deep svg {
+      stroke: none;
+      fill: currentColor;
     }
     .card-title {
       grid-row: 3 / 4;
@@ -651,6 +688,8 @@ export class CardOracleComponent {
 
   /** Pre-trusted SVG markup per project — computed once. */
   readonly iconSvgs: SafeHtml[];
+  /** Corner labels: roman numeral by default; Q♥ for Mooncake. */
+  readonly cornerLabels: { label: string; suit: string | null }[];
 
   readonly expanded = signal(false);
   readonly expandedVisible = signal(false);
@@ -704,8 +743,15 @@ export class CardOracleComponent {
   constructor() {
     this.iconSvgs = this.projects.map((p) =>
       this.sanitizer.bypassSecurityTrustHtml(
-        `<svg viewBox="0 0 24 24">${p.icon}</svg>`,
+        p.id === 'mooncake'
+          ? QUEEN_OF_HEARTS_SVG
+          : `<svg viewBox="0 0 24 24">${p.icon}</svg>`,
       ),
+    );
+    this.cornerLabels = this.projects.map((p, i) =>
+      p.id === 'mooncake'
+        ? { label: 'Q', suit: '♥' }
+        : { label: this.romans[i], suit: null },
     );
   }
 

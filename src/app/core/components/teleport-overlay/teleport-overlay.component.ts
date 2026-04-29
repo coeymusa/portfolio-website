@@ -16,6 +16,16 @@ import {
   TeleportService,
 } from '../../services/teleport.service';
 
+/** Mooncake's special card: Queen of Hearts (filled crown + heart). */
+const QUEEN_OF_HEARTS_SVG = `
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <path d="M 30 30 L 36 14 L 42 27 L 50 8 L 58 27 L 64 14 L 70 30 L 70 34 L 30 34 Z"/>
+  <circle cx="38" cy="22" r="1.5" style="fill: rgba(255, 220, 220, 0.65); stroke: none;"/>
+  <circle cx="50" cy="16" r="2"   style="fill: rgba(255, 230, 230, 0.8);  stroke: none;"/>
+  <circle cx="62" cy="22" r="1.5" style="fill: rgba(255, 220, 220, 0.65); stroke: none;"/>
+  <path d="M 50 92 C 30 80 14 62 14 47 C 14 37 22 30 30 30 C 38 30 45 35 50 42 C 55 35 62 30 70 30 C 78 30 86 37 86 47 C 86 62 70 80 50 92 Z"/>
+</svg>`;
+
 /**
  * Full-screen cinematic overlay played when the dice oracle picks a project.
  *
@@ -55,10 +65,22 @@ import {
           <span class="ghost-numeral">{{ numeral() }}</span>
         } @else {
           <div class="card-frame">
-            <span class="card-numeral nw">{{ numeral() }}</span>
-            <div class="card-icon" [innerHTML]="iconSvg()"></div>
+            <span class="card-numeral nw">
+              <span class="numeral-letter">{{ numeral() }}</span>
+              @if (cornerSuit()) {
+                <span class="numeral-suit">{{ cornerSuit() }}</span>
+              }
+            </span>
+            <div class="card-icon"
+                 [class.is-queen]="isQueen()"
+                 [innerHTML]="iconSvg()"></div>
             <span class="card-title">{{ title() }}</span>
-            <span class="card-numeral se">{{ numeral() }}</span>
+            <span class="card-numeral se">
+              <span class="numeral-letter">{{ numeral() }}</span>
+              @if (cornerSuit()) {
+                <span class="numeral-suit">{{ cornerSuit() }}</span>
+              }
+            </span>
           </div>
         }
       </div>
@@ -243,21 +265,29 @@ import {
 
     .ghost.ghost-card .card-numeral {
       position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1;
+      color: var(--accent);
       font-family: var(--font-display, Georgia, serif);
+    }
+    .ghost.ghost-card .card-numeral.nw { top: 6px; left: 10px; }
+    .ghost.ghost-card .card-numeral.se {
+      bottom: 6px; right: 10px;
+      transform: rotate(180deg);
+    }
+    .ghost.ghost-card .numeral-letter {
       font-variation-settings: 'opsz' 144, 'WONK' 1;
       font-style: italic;
       font-weight: 400;
       font-size: 1.3rem;
-      color: var(--accent);
       letter-spacing: -0.03em;
-      line-height: 1;
     }
-    .ghost.ghost-card .card-numeral.nw {
-      top: 6px; left: 10px;
-    }
-    .ghost.ghost-card .card-numeral.se {
-      bottom: 6px; right: 10px;
-      transform: rotate(180deg);
+    .ghost.ghost-card .numeral-suit {
+      font-size: 0.9rem;
+      font-style: normal;
+      margin-top: -1px;
     }
 
     .ghost.ghost-card .card-icon {
@@ -276,6 +306,11 @@ import {
       stroke-width: 1.2;
       stroke-linecap: round;
       stroke-linejoin: round;
+    }
+    /* Mooncake's Queen of Hearts is filled, not stroked. */
+    .ghost.ghost-card .card-icon.is-queen ::ng-deep svg {
+      stroke: none;
+      fill: currentColor;
     }
 
     .ghost.ghost-card .card-title {
@@ -329,6 +364,10 @@ export class TeleportOverlayComponent {
   readonly kind = signal<GhostKind>('face');
   readonly title = signal('');
   readonly iconSvg = signal<SafeHtml>('');
+  /** Suit symbol shown beneath the numeral; null for non-special cards. */
+  readonly cornerSuit = signal<string | null>(null);
+  /** True when the icon is the filled Queen of Hearts (Mooncake's card). */
+  readonly isQueen = signal(false);
 
   private readonly backdropRef = viewChild.required<ElementRef<HTMLElement>>('backdrop');
   private readonly portalRef = viewChild.required<ElementRef<HTMLElement>>('portal');
@@ -356,13 +395,20 @@ export class TeleportOverlayComponent {
       return;
     }
 
-    this.numeral.set(req.faceNumeral);
     this.accent.set(req.accent);
     this.kind.set(req.ghostKind);
     this.title.set(req.project.title);
+
+    // Mooncake gets the Queen of Hearts treatment when arriving via the
+    // card oracle: corners read "Q♥", icon is a filled crown + heart.
+    const queen = req.ghostKind === 'card' && req.project.id === 'mooncake';
+    this.numeral.set(queen ? 'Q' : req.faceNumeral);
+    this.cornerSuit.set(queen ? '♥' : null);
+    this.isQueen.set(queen);
     this.iconSvg.set(this.sanitizer.bypassSecurityTrustHtml(
-      `<svg viewBox="0 0 24 24">${req.project.icon}</svg>`,
+      queen ? QUEEN_OF_HEARTS_SVG : `<svg viewBox="0 0 24 24">${req.project.icon}</svg>`,
     ));
+
     this.active.set(true);
 
     // Wait for the overlay to commit to the DOM with the new state.
