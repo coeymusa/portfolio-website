@@ -13,14 +13,16 @@ import { TeleportService } from '../../core/services/teleport.service';
 
 /**
  * Second oracle (parallel to the d8 dice). Lives in the hero sidebar as a
- * small stacked-deck button that mirrors the dice's compact form. Clicking
- * it expands a full-screen overlay where eight tarot-style cards fan,
- * shuffle, draw, and reveal — then dispatches a card-shaped teleport to
- * the chosen project.
+ * small stacked-deck button. Clicking opens a fullscreen overlay where the
+ * deck shuffles, fans out, and the user **drags one card out** of the fan.
  *
- * The compact and expanded views share a single component because the
- * draw state, drawn index, and dispatched flag all live on the same
- * machine and we want them aligned across both displays.
+ *   1. compact: stack of mini cards visible under the dice.
+ *   2. expanded: fullscreen overlay opens.
+ *   3. shuffling: cards fan + two riffle passes, end in the fanned hand.
+ *   4. selecting: every card is draggable. Drag one out past 80 px.
+ *   5. drawing: the dragged card flies to centre, scales up, flips face-up.
+ *   6. revealed: held briefly so the user reads the entry.
+ *   7. dispatched: hands off to TeleportService with ghostKind: 'card'.
  */
 @Component({
   selector: 'app-card-oracle',
@@ -65,20 +67,27 @@ import { TeleportService } from '../../core/services/teleport.service';
             </div>
             <h2 class="exp-title"><em>Cut</em> the Deck</h2>
             <p class="exp-sub">
-              Eight arcana, shuffled. Let the deck pick the next entry.
+              Eight arcana, shuffled. Drag a card from the fan.
               <span class="mono">[ {{ stateLabel() }} ]</span>
             </p>
           </header>
 
           <div class="deck-wrap">
-            <div class="deck" [class.draw-active]="isDrawingOrRevealed()">
+            <div class="deck"
+                 [class.draw-active]="isDrawingOrRevealed()"
+                 [class.selecting]="phase() === 'selecting'">
               @for (project of projects; track project.id; let i = $index) {
                 <div #card
                      class="card"
                      [attr.data-idx]="i"
                      [style.--accent]="project.accent"
                      [style.--depth]="i"
-                     [class.is-drawn]="drawnIndex() === i">
+                     [class.is-drawn]="drawnIndex() === i"
+                     [class.is-dragging]="draggingIdx() === i"
+                     (pointerdown)="onCardPointerDown($event, i)"
+                     (pointermove)="onCardPointerMove($event, i)"
+                     (pointerup)="onCardPointerUp($event, i)"
+                     (pointercancel)="onCardPointerUp($event, i)">
                   <div class="card-face card-back">
                     <div class="back-frame">
                       <div class="back-mark">CC</div>
@@ -101,16 +110,24 @@ import { TeleportService } from '../../core/services/teleport.service';
           </div>
 
           <div class="exp-controls">
-            <button class="cta cta-primary"
-                    (click)="draw()"
-                    [disabled]="!canDraw()">
-              <span class="cta-arrow">›</span>
-              <span class="cta-text">{{ ctaLabel() }}</span>
-            </button>
-            @if (canCancel()) {
+            @if (phase() === 'idle') {
+              <button class="cta cta-primary" (click)="shuffle()">
+                <span class="cta-arrow">›</span>
+                <span class="cta-text">cut the deck</span>
+              </button>
               <button class="cta cta-ghost" (click)="collapse()">
                 <span>cancel</span>
               </button>
+            } @else if (phase() === 'selecting') {
+              <span class="hint">
+                <span class="hint-dot"></span>
+                drag any card to draw it
+              </span>
+              <button class="cta cta-ghost" (click)="reshuffle()">
+                <span>reshuffle</span>
+              </button>
+            } @else {
+              <span class="hint hint-quiet">{{ ctaLabel() }}</span>
             }
           </div>
         </div>
@@ -168,13 +185,8 @@ import { TeleportService } from '../../core/services/teleport.service';
     .deck-trigger:hover:not(:disabled) .mini-card {
       animation: deck-hover 1.6s ease-in-out infinite;
     }
-    .deck-trigger:disabled {
-      cursor: progress;
-      opacity: 0.5;
-    }
-    .deck-trigger:focus-visible {
-      outline: none;
-    }
+    .deck-trigger:disabled { cursor: progress; opacity: 0.5; }
+    .deck-trigger:focus-visible { outline: none; }
     .deck-trigger:focus-visible .mini-card {
       filter: drop-shadow(0 0 6px var(--brass));
     }
@@ -274,11 +286,11 @@ import { TeleportService } from '../../core/services/teleport.service';
       width: 100%;
       max-width: 1080px;
       margin: 0 auto;
-      padding: 5rem 2rem 3rem;
+      padding: 4rem 2rem 3rem;
       box-sizing: border-box;
       display: grid;
       grid-template-rows: auto 1fr auto;
-      gap: 1.5rem;
+      gap: 1rem;
       align-items: center;
       justify-items: center;
     }
@@ -294,7 +306,7 @@ import { TeleportService } from '../../core/services/teleport.service';
       display: flex;
       align-items: center;
       gap: 1rem;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1.25rem;
       justify-content: center;
     }
     .exp-rule::before, .exp-rule::after {
@@ -315,12 +327,12 @@ import { TeleportService } from '../../core/services/teleport.service';
     .exp-title {
       font-family: var(--font-display);
       font-variation-settings: 'opsz' 144, 'WONK' 1;
-      font-size: clamp(2.5rem, 7vw, 5rem);
+      font-size: clamp(2.5rem, 7vw, 4.5rem);
       line-height: 0.95;
       font-weight: 400;
       color: var(--paper);
       letter-spacing: -0.04em;
-      margin-bottom: 0.85rem;
+      margin-bottom: 0.6rem;
     }
     .exp-title em {
       font-style: italic;
@@ -332,7 +344,7 @@ import { TeleportService } from '../../core/services/teleport.service';
     .exp-sub {
       font-family: var(--font-display);
       font-style: italic;
-      font-size: 1.05rem;
+      font-size: 1rem;
       color: var(--text);
       line-height: 1.6;
     }
@@ -345,7 +357,7 @@ import { TeleportService } from '../../core/services/teleport.service';
       letter-spacing: 0.1em;
     }
 
-    /* ================ DECK STAGE (animation area) ================ */
+    /* ================ DECK STAGE ================ */
     .deck-wrap {
       width: 100%;
       display: flex;
@@ -376,6 +388,8 @@ import { TeleportService } from '../../core/services/teleport.service';
       height: var(--card-h);
       transform-style: preserve-3d;
       will-change: transform;
+      touch-action: none; /* let pointermove fire on touch */
+      user-select: none;
 
       transform:
         translate3d(
@@ -383,6 +397,22 @@ import { TeleportService } from '../../core/services/teleport.service';
           calc(var(--depth) * -1.5px),
           calc(var(--depth) * 1px))
         rotate(calc(var(--depth) * 0.4deg));
+    }
+
+    /* During selecting phase, cards invite interaction */
+    .deck.selecting .card { cursor: grab; }
+    .deck.selecting .card.is-dragging { cursor: grabbing; }
+
+    .deck.selecting .card:not(.is-dragging):hover {
+      filter:
+        drop-shadow(0 0 12px rgba(201, 169, 97, 0.55))
+        drop-shadow(0 0 24px rgba(255, 107, 53, 0.3));
+    }
+
+    .card.is-dragging {
+      filter:
+        drop-shadow(0 0 18px rgba(255, 107, 53, 0.55))
+        drop-shadow(0 0 36px rgba(255, 107, 53, 0.3));
     }
 
     .card-face {
@@ -553,6 +583,31 @@ import { TeleportService } from '../../core/services/teleport.service';
     }
     .cta-ghost:hover { color: var(--text); border-color: var(--rule); }
 
+    .hint {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.65rem;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--brass);
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+    .hint-quiet { color: var(--text-faint); }
+    .hint-dot {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--ember);
+      box-shadow: 0 0 10px var(--ember);
+      animation: hint-pulse 1.6s ease-in-out infinite;
+    }
+    @keyframes hint-pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%      { opacity: 0.45; transform: scale(0.7); }
+    }
+
     @keyframes exp-fade-in {
       from { opacity: 0; transform: translateY(10px); }
       to   { opacity: 1; transform: translateY(0); }
@@ -562,6 +617,7 @@ import { TeleportService } from '../../core/services/teleport.service';
       .deck-trigger:hover .mini-card { animation: none !important; }
       .expanded-overlay { transition: none !important; }
       .exp-masthead, .deck, .exp-controls { animation: none !important; }
+      .hint-dot { animation: none !important; }
     }
 
     @media (max-width: 1024px) and (min-width: 641px) {
@@ -593,35 +649,43 @@ export class CardOracleComponent {
   readonly projects: Project[] = PROJECTS;
   readonly romans = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII'];
 
-  /** Pre-trusted SVG markup per project — computed once so [innerHTML] doesn't
-   *  recreate SafeHtml on every change-detection pass. */
+  /** Pre-trusted SVG markup per project — computed once. */
   readonly iconSvgs: SafeHtml[];
 
   readonly expanded = signal(false);
-  /** Two-step show so we can fade in via CSS transition. */
   readonly expandedVisible = signal(false);
 
-  readonly phase = signal<'idle' | 'fanning' | 'riffling' | 'collapsing' | 'drawing' | 'revealed'>('idle');
+  readonly phase = signal<'idle' | 'shuffling' | 'selecting' | 'drawing' | 'revealed'>('idle');
   readonly drawnIndex = signal(-1);
+  readonly draggingIdx = signal(-1);
   readonly dispatched = signal(false);
 
   private readonly cardsRef = viewChildren<ElementRef<HTMLElement>>('card');
 
-  readonly canDraw = computed(() =>
-    this.expanded() && this.phase() === 'idle' && !this.dispatched(),
-  );
+  /** Final fan transforms per card — used to anchor the drag delta. */
+  private fanTransforms: string[] = [];
 
-  readonly canCancel = computed(() =>
-    this.expanded() && this.phase() === 'idle' && !this.dispatched(),
+  /** Active drag state, or null when nothing is being dragged. */
+  private dragState: {
+    cardIdx: number;
+    startX: number;
+    startY: number;
+    pointerId: number;
+  } | null = null;
+
+  /** Distance (px) the pointer must travel before pointerup commits a draw. */
+  private static readonly DRAG_COMMIT_DISTANCE = 80;
+
+  readonly isDrawingOrRevealed = computed(
+    () => this.phase() === 'drawing' || this.phase() === 'revealed',
   );
 
   readonly ctaLabel = computed(() => {
     if (this.dispatched()) return 'summoning';
     switch (this.phase()) {
       case 'idle':       return 'cut the deck';
-      case 'fanning':    return 'spreading';
-      case 'riffling':   return 'shuffling';
-      case 'collapsing': return 'cutting';
+      case 'shuffling':  return 'shuffling';
+      case 'selecting':  return 'drag a card to draw';
       case 'drawing':    return 'drawing';
       case 'revealed':   return 'arcanum drawn';
     }
@@ -631,11 +695,10 @@ export class CardOracleComponent {
     if (this.dispatched()) return 'fate dispatched';
     const idx = this.drawnIndex();
     switch (this.phase()) {
-      case 'idle':       return 'awaiting cut';
-      case 'fanning':    return 'fanning the deck';
-      case 'riffling':   return 'riffling';
-      case 'collapsing': return 'cutting';
-      case 'drawing':    return 'drawing';
+      case 'idle':      return 'awaiting cut';
+      case 'shuffling': return 'shuffling';
+      case 'selecting': return 'pick one · drag it out';
+      case 'drawing':   return 'drawing';
       case 'revealed':
         return idx >= 0 ? `arcanum ${this.romans[idx]} drawn` : 'drawn';
     }
@@ -649,94 +712,169 @@ export class CardOracleComponent {
     );
   }
 
-  readonly isDrawingOrRevealed = computed(() =>
-    this.phase() === 'drawing' || this.phase() === 'revealed',
-  );
-
   // ============== expand / collapse ==============
 
   expand(): void {
     if (this.expanded() || this.dispatched()) return;
     this.expanded.set(true);
-    // Next frame, set visible so the CSS transition runs.
     requestAnimationFrame(() => this.expandedVisible.set(true));
   }
 
   onBackdropClick(): void {
-    if (this.canCancel()) this.collapse();
+    // Only allow backdrop dismiss when the user hasn't started anything yet.
+    if (this.phase() === 'idle' && !this.dispatched()) this.collapse();
   }
 
   collapse(): void {
-    if (!this.canCancel()) return;
+    if (this.dispatched()) return;
     this.expandedVisible.set(false);
     window.setTimeout(() => {
+      this.resetCards();
       this.expanded.set(false);
       this.phase.set('idle');
       this.drawnIndex.set(-1);
+      this.draggingIdx.set(-1);
     }, 500);
   }
 
-  // ============== draw ==============
+  // ============== shuffle (fan + riffle, ends in 'selecting') ==============
 
-  async draw(): Promise<void> {
-    if (!this.canDraw()) return;
+  async shuffle(): Promise<void> {
+    if (this.phase() !== 'idle') return;
 
     const cards = this.cardsRef().map((r) => r.nativeElement);
     if (cards.length !== this.projects.length) return;
 
     if (this.prefersReducedMotion()) {
-      const pick = Math.floor(Math.random() * this.projects.length);
-      this.drawnIndex.set(pick);
-      this.phase.set('revealed');
-      this.dispatchTeleport(pick, cards[pick]);
+      this.fanTransforms = this.computeFanTransforms(cards.length);
+      cards.forEach((c, i) => (c.style.transform = this.fanTransforms[i]));
+      this.phase.set('selecting');
       return;
     }
 
-    const pickIdx = Math.floor(Math.random() * this.projects.length);
-
-    this.phase.set('fanning');
+    this.phase.set('shuffling');
     await this.fanOut(cards);
-
-    this.phase.set('riffling');
     await this.riffle(cards);
+    // Ensure cards are at clean fan positions for clean drag math.
+    await this.settleToFan(cards);
+    this.phase.set('selecting');
+  }
 
-    this.phase.set('collapsing');
-    await this.collapse_(cards, pickIdx);
+  async reshuffle(): Promise<void> {
+    if (this.phase() !== 'selecting') return;
+    const cards = this.cardsRef().map((r) => r.nativeElement);
+    this.phase.set('shuffling');
+    await this.riffle(cards);
+    await this.settleToFan(cards);
+    this.phase.set('selecting');
+  }
 
-    // Set drawnIndex BEFORE drawing so .is-drawn / .draw-active engage and
-    // every other card fades out, leaving only the chosen card visible.
-    this.drawnIndex.set(pickIdx);
+  // ============== drag interaction ==============
+
+  onCardPointerDown(e: PointerEvent, i: number): void {
+    if (this.phase() !== 'selecting' || this.dragState) return;
+    e.preventDefault();
+    const card = e.currentTarget as HTMLElement;
+    card.setPointerCapture(e.pointerId);
+
+    // Cancel any in-flight WAA so style.transform takes effect.
+    card.getAnimations().forEach((a) => a.cancel());
+    card.style.transform = this.fanTransforms[i];
+
+    this.dragState = {
+      cardIdx: i,
+      startX: e.clientX,
+      startY: e.clientY,
+      pointerId: e.pointerId,
+    };
+    this.draggingIdx.set(i);
+  }
+
+  onCardPointerMove(e: PointerEvent, i: number): void {
+    if (!this.dragState || this.dragState.cardIdx !== i) return;
+    const card = e.currentTarget as HTMLElement;
+    const dx = e.clientX - this.dragState.startX;
+    const dy = e.clientY - this.dragState.startY;
+    // Drag translate is the OUTERMOST transform (leftmost in the list)
+    // so it translates in screen space, on top of the fan rotation.
+    const lift = Math.min(60, Math.hypot(dx, dy) * 0.4);
+    card.style.transform =
+      `translate3d(${dx}px, ${dy}px, ${80 + lift}px) ${this.fanTransforms[i]}`;
+  }
+
+  onCardPointerUp(e: PointerEvent, i: number): void {
+    if (!this.dragState || this.dragState.cardIdx !== i) return;
+    const card = e.currentTarget as HTMLElement;
+    const dx = e.clientX - this.dragState.startX;
+    const dy = e.clientY - this.dragState.startY;
+    const distance = Math.hypot(dx, dy);
+
+    if (card.hasPointerCapture(e.pointerId)) {
+      card.releasePointerCapture(e.pointerId);
+    }
+
+    this.dragState = null;
+    this.draggingIdx.set(-1);
+
+    if (distance >= CardOracleComponent.DRAG_COMMIT_DISTANCE) {
+      void this.commitDraw(i, card);
+    } else {
+      this.snapBack(card, i);
+    }
+  }
+
+  private snapBack(card: HTMLElement, i: number): void {
+    card.animate(
+      [{}, { transform: this.fanTransforms[i] }],
+      { duration: 280, easing: 'cubic-bezier(0.4, 0, 0.2, 1)', fill: 'forwards' },
+    );
+  }
+
+  private async commitDraw(i: number, card: HTMLElement): Promise<void> {
+    this.drawnIndex.set(i);
     this.phase.set('drawing');
-    await this.drawCard(cards, pickIdx);
+
+    // Animate card to centre, scale up, flip face-up. Starts from current
+    // (dragged) inline transform — the {} keyframe captures it.
+    await card.animate(
+      [
+        {},
+        {
+          transform: 'translate3d(0, -40px, 200px) rotateY(180deg) scale(1.18)',
+        },
+      ],
+      { duration: 800, easing: 'cubic-bezier(0.2, 0.8, 0.3, 1.05)', fill: 'forwards' },
+    ).finished;
 
     this.phase.set('revealed');
 
-    await this.sleep(1700);
+    await this.sleep(1500);
 
-    this.dispatchTeleport(pickIdx, cards[pickIdx]);
+    this.dispatchTeleport(i, card);
   }
 
   // ============== animation phases ==============
 
-  private async fanOut(cards: HTMLElement[]): Promise<void> {
-    const N = cards.length;
+  private computeFanTransforms(n: number): string[] {
     const arcDeg = 90;
     const radius = 240;
-
-    const tasks = cards.map((card, i) => {
-      const t = (i / (N - 1)) - 0.5;
+    return Array.from({ length: n }, (_, i) => {
+      const t = (i / (n - 1)) - 0.5;
       const angle = t * arcDeg;
       const dx = Math.sin((angle * Math.PI) / 180) * radius;
       const dy = -Math.cos((angle * Math.PI) / 180) * 70 + 70;
       const z = 30 + i * 2;
+      return `translate3d(${dx}px, ${dy}px, ${z}px) rotate(${angle}deg)`;
+    });
+  }
 
-      return card.animate(
+  private async fanOut(cards: HTMLElement[]): Promise<void> {
+    this.fanTransforms = this.computeFanTransforms(cards.length);
+    const tasks = cards.map((card, i) =>
+      card.animate(
         [
           this.deckPose(i),
-          {
-            transform: `translate3d(${dx}px, ${dy}px, ${z}px) rotate(${angle}deg)`,
-            offset: 1,
-          },
+          { transform: this.fanTransforms[i], offset: 1 },
         ],
         {
           duration: 700 + i * 30,
@@ -744,25 +882,14 @@ export class CardOracleComponent {
           easing: 'cubic-bezier(0.2, 0.8, 0.3, 1.05)',
           fill: 'forwards',
         },
-      ).finished;
-    });
-
+      ).finished,
+    );
     await Promise.all(tasks);
   }
 
   private async riffle(cards: HTMLElement[]): Promise<void> {
-    const arcDeg = 90;
-    const radius = 240;
     const N = cards.length;
-
-    const positionAt = (i: number) => {
-      const t = (i / (N - 1)) - 0.5;
-      const angle = t * arcDeg;
-      const dx = Math.sin((angle * Math.PI) / 180) * radius;
-      const dy = -Math.cos((angle * Math.PI) / 180) * 70 + 70;
-      const z = 30 + i * 2;
-      return { dx, dy, angle, z };
-    };
+    const positionAt = (i: number) => this.fanTransforms[i];
 
     for (let pass = 0; pass < 2; pass++) {
       const swapTasks = cards.map((card, i) => {
@@ -776,52 +903,36 @@ export class CardOracleComponent {
 
         return card.animate(
           [
-            { transform: `translate3d(${here.dx}px, ${here.dy}px, ${here.z}px) rotate(${here.angle}deg)` },
-            {
-              transform: `translate3d(${(here.dx + there.dx) / 2}px, ${here.dy - 40}px, ${here.z + 30}px) rotate(${(here.angle + there.angle) / 2}deg)`,
-              offset: 0.5,
-            },
-            { transform: `translate3d(${there.dx}px, ${there.dy}px, ${there.z}px) rotate(${there.angle}deg)`, offset: 1 },
+            { transform: here },
+            { transform: `translate3d(0, -40px, 60px) ${there}`, offset: 0.5 },
+            { transform: there, offset: 1 },
           ],
           { duration: 500, easing: 'ease-in-out', fill: 'forwards' },
         ).finished;
       });
       await Promise.all(swapTasks);
+
+      // After the riffle, snap each card back to its OWN fan position so
+      // identity matches index again (riffle was visual misdirection).
+      const snapTasks = cards.map((card, i) =>
+        card.animate(
+          [{}, { transform: this.fanTransforms[i], offset: 1 }],
+          { duration: 220, easing: 'ease-out', fill: 'forwards' },
+        ).finished,
+      );
+      await Promise.all(snapTasks);
     }
   }
 
-  private async collapse_(cards: HTMLElement[], pickIdx: number): Promise<void> {
-    const tasks = cards.map((card, i) => {
-      const finalDepth = i === pickIdx ? cards.length - 1 : (i < pickIdx ? i : i - 1);
-      return card.animate(
-        [
-          {},
-          {
-            transform: `translate3d(${finalDepth * 1.5}px, ${finalDepth * -1.5}px, ${finalDepth * 1}px) rotate(${finalDepth * 0.4}deg)`,
-            offset: 1,
-          },
-        ],
-        {
-          duration: 450,
-          delay: (cards.length - i) * 15,
-          easing: 'cubic-bezier(0.4, 0.0, 0.2, 1)',
-          fill: 'forwards',
-        },
-      ).finished;
-    });
+  /** Defensive — make sure every card is exactly at its fan transform. */
+  private async settleToFan(cards: HTMLElement[]): Promise<void> {
+    const tasks = cards.map((card, i) =>
+      card.animate(
+        [{}, { transform: this.fanTransforms[i], offset: 1 }],
+        { duration: 200, easing: 'ease-out', fill: 'forwards' },
+      ).finished,
+    );
     await Promise.all(tasks);
-  }
-
-  private async drawCard(cards: HTMLElement[], pickIdx: number): Promise<void> {
-    const card = cards[pickIdx];
-    await card.animate(
-      [
-        { transform: 'translate3d(0, 0, 80px) rotateY(0deg) scale(1)', offset: 0 },
-        { transform: 'translate3d(0, -50px, 160px) rotateY(0deg) scale(1.1)', offset: 0.35 },
-        { transform: 'translate3d(0, -50px, 200px) rotateY(180deg) scale(1.18)', offset: 1 },
-      ],
-      { duration: 850, easing: 'cubic-bezier(0.2, 0.8, 0.3, 1.05)', fill: 'forwards' },
-    ).finished;
   }
 
   // ============== handoff ==============
@@ -839,26 +950,29 @@ export class CardOracleComponent {
       ghostKind: 'card',
     });
 
-    // After the teleport cinematic finishes, hide the expanded view + reset.
     window.setTimeout(() => {
       this.expandedVisible.set(false);
       window.setTimeout(() => {
+        this.resetCards();
         this.expanded.set(false);
         this.dispatched.set(false);
         this.drawnIndex.set(-1);
+        this.draggingIdx.set(-1);
         this.phase.set('idle');
-
-        // Cancel any lingering animations on the cards so the deck pose returns.
-        const cards = this.cardsRef().map((r) => r.nativeElement);
-        cards.forEach((c) => {
-          c.getAnimations().forEach((a) => a.cancel());
-          c.style.transform = '';
-        });
       }, 500);
     }, 5000);
   }
 
   // ============== helpers ==============
+
+  private resetCards(): void {
+    const cards = this.cardsRef().map((r) => r.nativeElement);
+    cards.forEach((c) => {
+      c.getAnimations().forEach((a) => a.cancel());
+      c.style.transform = '';
+    });
+    this.fanTransforms = [];
+  }
 
   private deckPose(i: number): Keyframe {
     return {
