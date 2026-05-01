@@ -286,6 +286,35 @@ import { Project, previewUrl } from '../../../core/models/project.model';
                 <div class="stamp-foot">{{ specimenStr('guarantee') }}</div>
               </div>
             }
+
+            @case ('global-atlas') {
+              <div class="device device-atlas">
+                <div class="atlas-header">
+                  <span class="atlas-title">THE RECORD</span>
+                  <span class="atlas-live">
+                    <span class="atlas-dot"></span> LIVE
+                  </span>
+                </div>
+                <div class="atlas-body">
+                  <svg class="atlas-globe-svg" viewBox="0 0 100 100" aria-hidden="true">
+                    <circle cx="50" cy="50" r="38" fill="rgba(245,234,205,0.04)" stroke="rgba(245,234,205,0.3)" stroke-width="0.7"/>
+                    <ellipse cx="50" cy="50" rx="38" ry="14" fill="none" stroke="rgba(245,234,205,0.18)" stroke-dasharray="1.5 2.5"/>
+                    <ellipse cx="50" cy="50" rx="14" ry="38" fill="none" stroke="rgba(245,234,205,0.18)" stroke-dasharray="1.5 2.5"/>
+                    <line x1="12" y1="50" x2="88" y2="50" stroke="rgba(245,234,205,0.10)"/>
+                    <circle cx="62" cy="38" r="3" fill="var(--theme-accent)"/>
+                    <circle cx="62" cy="38" r="1" fill="#ffb19a"/>
+                    <circle cx="36" cy="58" r="2.2" fill="var(--theme-accent)" opacity="0.6"/>
+                    <circle cx="58" cy="68" r="1.8" fill="var(--theme-accent)" opacity="0.45"/>
+                  </svg>
+                  <dl class="atlas-list">
+                    <div><dt>VOICES</dt><dd>{{ specimenStr('voices') }}</dd></div>
+                    <div><dt>COUNTRIES</dt><dd>{{ specimenStr('countries') }}</dd></div>
+                    <div><dt>LATEST</dt><dd>{{ specimenStr('latest') }}</dd></div>
+                    <div><dt>SIGNAL</dt><dd class="r">{{ specimenStr('signal') }}</dd></div>
+                  </dl>
+                </div>
+              </div>
+            }
           }
         </div>
 

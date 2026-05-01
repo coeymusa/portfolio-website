@@ -83,6 +83,29 @@ export function fallbackPreview(project: { theme: ProjectTheme; accent: string; 
       <circle cx="120" cy="${h - 120}" r="5" fill="${accent}"/>
       <text x="140" y="${h - 115}" font-family="JetBrains Mono, monospace" font-size="11" fill="#8a8170" letter-spacing="2">COMMITTEE APPROVED · DISBURSED · 2026</text>
     `;
+  } else if (project.theme === 'global-atlas') {
+    // 3D-feeling globe with a couple of red signal dots and an editorial title
+    const cx = w / 2;
+    const cy = h / 2 + 20;
+    const r = 280;
+    inner = `
+      <rect width="${w}" height="${h}" fill="#08070a"/>
+      <text x="80" y="100" font-family="Georgia, serif" font-size="40" font-style="italic" fill="${accent}">what is your concern,</text>
+      <text x="80" y="150" font-family="Georgia, serif" font-size="40" font-style="italic" fill="#faf6ed">right now?</text>
+      <text x="80" y="180" font-family="JetBrains Mono, monospace" font-size="11" fill="#8a8170" letter-spacing="3">ANONYMOUS · GLOBAL · PERMANENT</text>
+      <circle cx="${cx}" cy="${cy}" r="${r + 12}" fill="rgba(120,170,230,0.06)"/>
+      <circle cx="${cx}" cy="${cy}" r="${r}" fill="rgba(26,34,53,0.95)" stroke="rgba(140,180,220,0.18)" stroke-width="1"/>
+      <ellipse cx="${cx}" cy="${cy}" rx="${r}" ry="100" fill="none" stroke="rgba(245,234,205,0.06)" stroke-dasharray="2 4"/>
+      <ellipse cx="${cx}" cy="${cy}" rx="${r}" ry="200" fill="none" stroke="rgba(245,234,205,0.06)" stroke-dasharray="2 4"/>
+      <line x1="${cx - r}" y1="${cy}" x2="${cx + r}" y2="${cy}" stroke="rgba(245,234,205,0.05)"/>
+      <line x1="${cx}" y1="${cy - r}" x2="${cx}" y2="${cy + r}" stroke="rgba(245,234,205,0.05)"/>
+      <circle cx="${cx + 60}" cy="${cy - 80}" r="8" fill="${accent}"/>
+      <circle cx="${cx + 60}" cy="${cy - 80}" r="3" fill="#ffb19a"/>
+      <circle cx="${cx - 110}" cy="${cy + 40}" r="5" fill="${accent}" opacity="0.6"/>
+      <circle cx="${cx + 30}" cy="${cy + 130}" r="4" fill="${accent}" opacity="0.45"/>
+      <text x="${cx + 80}" y="${cy - 88}" font-family="Georgia, serif" font-size="14" font-style="italic" fill="#faf6ed">"loneliness is killing more of us than any disease"</text>
+      <text x="${cx + 80}" y="${cy - 70}" font-family="JetBrains Mono, monospace" font-size="9" fill="${accent}" letter-spacing="2">JAPAN · AGE 41</text>
+    `;
   } else {
     // Generic fallback
     inner = `
@@ -104,7 +127,8 @@ export type ProjectTheme =
   | 'cv-frame'
   | 'mobile-chat'
   | 'service-stamp'
-  | 'cockpit-ops';
+  | 'cockpit-ops'
+  | 'global-atlas';
 
 export interface ProjectSpecimen {
   kind: ProjectTheme;
@@ -441,6 +465,48 @@ export const PROJECTS: Project[] = [
         activity3State: 'PASSED',
         activity4: 'agent#1 → PR opened',
         activity4State: 'REVIEW',
+      },
+    },
+  },
+  {
+    id: 'whatisyourconcern',
+    title: 'What is your concern?',
+    tagline: 'An anonymous global record of what humanity is afraid of, on a draggable 3D globe',
+    description:
+      'A literal globe you can drag and zoom — voices float up from countries in real time, click any country (yes, including Antarctica) to read what people there are saying, filter by topic and age, and post your own anonymously. No accounts, no email. Built end to end in a single weekend session: 3D orthographic globe in pure SVG (no three.js), Supabase persistence, upvotes-only resonance signal, URL/handle moderation, and Claude Haiku translating non-English submissions on the way in.',
+    techStack: [
+      { name: 'Next.js 16', category: 'frontend' },
+      { name: 'TypeScript', category: 'frontend' },
+      { name: 'Tailwind v4', category: 'frontend' },
+      { name: 'd3-geo', category: 'frontend' },
+      { name: 'motion', category: 'frontend' },
+      { name: 'Supabase', category: 'database' },
+      { name: 'Claude Haiku', category: 'api' },
+      { name: 'Cloudflare Turnstile', category: 'infra' },
+      { name: 'Vercel', category: 'infra' },
+    ],
+    features: [
+      '3D draggable orthographic globe with atmospheric glow, scan line, and 220 stars — pure SVG',
+      '165-country click coverage including Antarctica; auto-pan to selection on click',
+      'Anonymous posts plus responses plus upvotes ("this resonates"), per-IP rate-limited',
+      'English-by-default with originals shown beneath; auto-translation via Claude Haiku',
+      "Live polling — other people's posts surface within 20 seconds without refresh",
+    ],
+    liveUrl: 'https://whatisyourconcern.com',
+    category: 'saas',
+    gradient: 'linear-gradient(135deg, #c7321b, #d4a24a)',
+    icon: '<circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><circle cx="16" cy="9" r="1.6" fill="currentColor"/>',
+    theme: 'global-atlas',
+    accent: '#c7321b',
+    staticPreview: 'assets/projects/whatisyourconcern.png',
+    previewCaption: 'fig. 9 — whatisyourconcern.com · live',
+    specimen: {
+      kind: 'global-atlas',
+      data: {
+        voices: 'LIVE',
+        countries: '165 CLICKABLE',
+        latest: 'JP · age 41 · loneliness',
+        signal: '+ THIS RESONATES',
       },
     },
   },
