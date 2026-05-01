@@ -354,8 +354,8 @@ import { Project, previewUrl } from '../../../core/models/project.model';
           </div>
         </div>
 
-        @if (project().liveUrl) {
-          <footer class="entry-footer">
+        <footer class="entry-footer">
+          @if (project().liveUrl) {
             <a
               class="visit-link"
               [href]="project().liveUrl"
@@ -366,15 +366,28 @@ import { Project, previewUrl } from '../../../core/models/project.model';
               <span class="visit-text">view it live</span>
               <span class="visit-url">{{ shortUrl() }}</span>
             </a>
-          </footer>
-        } @else {
-          <footer class="entry-footer">
+          } @else {
             <span class="no-link">
               <span class="visit-arrow">◉</span>
               <span>internal · not public</span>
             </span>
-          </footer>
-        }
+          }
+
+          @if (project().repoUrl) {
+            <a
+              class="repo-link"
+              [href]="project().repoUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              [attr.aria-label]="'Open source code for ' + project().title + ' on GitHub'"
+            >
+              <span class="repo-tag">open source</span>
+              <span class="repo-sep">·</span>
+              <span class="repo-host">{{ shortRepo() }}</span>
+              <span class="repo-arrow">↗</span>
+            </a>
+          }
+        </footer>
       </div>
     </article>
   `,
@@ -440,6 +453,19 @@ export class ProjectCardComponent implements OnInit {
     try {
       const u = new URL(url);
       return u.host.replace(/^www\./, '');
+    } catch {
+      return url;
+    }
+  }
+
+  shortRepo(): string {
+    const url = this.project().repoUrl;
+    if (!url) return '';
+    try {
+      const u = new URL(url);
+      // host + first two path segments → "github.com/coeymusa/What-is-your-concern"
+      const path = u.pathname.split('/').filter(Boolean).slice(0, 2).join('/');
+      return path ? `${u.host}/${path}` : u.host;
     } catch {
       return url;
     }

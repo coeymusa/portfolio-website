@@ -18,6 +18,8 @@ export interface Project {
   staticPreview?: string;
   /** Skip the themed specimen device — useful when the polaroid screenshot already carries the visual */
   hideSpecimen?: boolean;
+  /** Public source-code URL — surfaced as a quiet "open source" link in the card footer */
+  repoUrl?: string;
 }
 
 /** Builds a screenshot URL for any live site via Microlink (free tier, no auth).
@@ -503,6 +505,7 @@ export const PROJECTS: Project[] = [
     staticPreview: 'assets/projects/whatisyourconcern.png',
     previewCaption: 'fig. 9 — whatisyourconcern.com · live',
     hideSpecimen: true,
+    repoUrl: 'https://github.com/coeymusa/What-is-your-concern',
     specimen: {
       kind: 'global-atlas',
       data: {
