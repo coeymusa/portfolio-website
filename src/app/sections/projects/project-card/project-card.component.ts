@@ -75,6 +75,7 @@ import { Project, previewUrl } from '../../../core/models/project.model';
         }
 
         <!-- THEMED SPECIMEN DEVICE -->
+        @if (!project().hideSpecimen) {
         <div class="specimen-frame" [attr.data-kind]="project().theme">
           @switch (project().theme) {
             @case ('ai-chat') {
@@ -317,6 +318,7 @@ import { Project, previewUrl } from '../../../core/models/project.model';
             }
           }
         </div>
+        }
 
         <p class="entry-description">{{ project().description }}</p>
 

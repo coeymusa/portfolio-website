@@ -16,6 +16,8 @@ export interface Project {
   previewCaption?: string;
   /** Local static screenshot path — shown immediately, then upgraded to live */
   staticPreview?: string;
+  /** Skip the themed specimen device — useful when the polaroid screenshot already carries the visual */
+  hideSpecimen?: boolean;
 }
 
 /** Builds a screenshot URL for any live site via Microlink (free tier, no auth).
@@ -500,6 +502,7 @@ export const PROJECTS: Project[] = [
     accent: '#c7321b',
     staticPreview: 'assets/projects/whatisyourconcern.png',
     previewCaption: 'fig. 9 — whatisyourconcern.com · live',
+    hideSpecimen: true,
     specimen: {
       kind: 'global-atlas',
       data: {
