@@ -206,6 +206,7 @@ export const SPRINT_ENTRIES: SprintEntry[] = [
     tagline: 'Private SaaS for couples — upload photos, AI designs a one-of-one site, deploys to a custom subdomain.',
     liveUrl: 'https://cariadletters.com',
     repoUrl: 'https://github.com/coeymusa/cariadletters',
+    archiveSlug: 'cariadletters',
     accent: '#e4846b',
     buildNotes: [
       '14 commits between 17:41 and 22:44 UTC — repo created the same evening',

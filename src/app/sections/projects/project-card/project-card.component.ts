@@ -413,17 +413,24 @@ export class ProjectCardComponent implements OnInit {
   ngOnInit(): void {
     const p = this.project();
 
-    // Polaroid is only shown when a staticPreview is provided.
-    // This lets us opt-out per project (e.g. MCU with no public URL,
-    // Rugby CV where the headless screenshot is unreliable).
-    if (!p.staticPreview) return;
+    // Polaroid renders when EITHER a staticPreview is provided OR there is
+    // a liveUrl we can hand to Microlink. Projects with neither (e.g. MCU
+    // Loan System — internal, no public URL) opt out entirely. Rugby CV
+    // explicitly skips the polaroid by setting neither, since headless
+    // screenshots of its annotation tool are unreliable.
+    if (p.staticPreview) {
+      // Step 1: show the captured PNG immediately (instant)
+      this.currentPreview.set(p.staticPreview);
+    } else if (p.liveUrl) {
+      // No static asset — show the Microlink screenshot directly. There is
+      // no instant frame, but it loads in the background and replaces the
+      // empty placeholder when ready.
+      this.currentPreview.set(previewUrl(p.liveUrl));
+    }
 
-    // Step 1: Show static preview immediately (instant)
-    this.currentPreview.set(p.staticPreview);
-
-    // Step 2: Preload the live Microlink screenshot in background — browser only.
-    // SSR/prerender renders without `Image`, so guard with isPlatformBrowser.
-    if (this.isBrowser && p.liveUrl) {
+    // Step 2 (when both exist): preload the live Microlink in the background
+    // and upgrade once it's ready. Browser only — SSR has no Image.
+    if (this.isBrowser && p.staticPreview && p.liveUrl) {
       const liveUrl = previewUrl(p.liveUrl);
       if (liveUrl) {
         const img = new Image();
