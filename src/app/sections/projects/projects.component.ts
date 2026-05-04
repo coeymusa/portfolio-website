@@ -4,6 +4,7 @@ import {
   PROJECTS,
   ProjectCategory,
 } from '../../core/models/project.model';
+import { RouterLink } from '@angular/router';
 import { ProjectCardComponent } from './project-card/project-card.component';
 
 type FilterValue = ProjectCategory | 'all';
@@ -16,10 +17,20 @@ interface FilterChip {
 @Component({
   selector: 'app-projects',
   standalone: true,
-  imports: [ProjectCardComponent],
+  imports: [ProjectCardComponent, RouterLink],
   template: `
     <section id="projects" class="section archive">
       <div class="container">
+        <!-- Case-study insert: a slim editorial strip above the masthead -->
+        <a class="case-study-strip" routerLink="/one-week">
+          <span class="strip-eyebrow">CHAPTER TWO · NEW</span>
+          <span class="strip-claim">
+            Four products shipped in seven days.
+            <em>Read the case study</em>
+          </span>
+          <span class="strip-arrow">→</span>
+        </a>
+
         <!-- Section masthead -->
         <header class="masthead">
           <div class="masthead-rule">
@@ -67,6 +78,75 @@ interface FilterChip {
     .archive {
       background: var(--ink);
       position: relative;
+    }
+
+    /* Case-study strip — printed-insert vibe, sits above the masthead */
+    .case-study-strip {
+      display: flex;
+      align-items: baseline;
+      gap: 1.25rem;
+      padding: 1.5rem 0;
+      margin-bottom: 4rem;
+      border-top: 1px solid var(--ember);
+      border-bottom: 1px solid var(--rule);
+      text-decoration: none;
+      transition: background 0.3s ease, padding-left 0.3s ease;
+      flex-wrap: wrap;
+    }
+
+    .case-study-strip:hover {
+      background: rgba(255, 107, 53, 0.04);
+      padding-left: 0.5rem;
+    }
+
+    .case-study-strip:hover .strip-arrow {
+      transform: translateX(4px);
+      color: var(--ember);
+    }
+
+    .strip-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.3em;
+      color: var(--ember);
+      white-space: nowrap;
+    }
+
+    .strip-claim {
+      flex: 1;
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      color: var(--paper);
+      font-style: normal;
+      letter-spacing: -0.01em;
+      min-width: 280px;
+    }
+
+    .strip-claim em {
+      font-style: italic;
+      color: var(--ember);
+      margin-left: 0.5rem;
+    }
+
+    .strip-arrow {
+      font-family: var(--font-mono);
+      font-size: 1.2rem;
+      color: var(--brass);
+      transition: transform 0.3s ease, color 0.3s ease;
+    }
+
+    @media (max-width: 640px) {
+      .case-study-strip {
+        gap: 0.5rem;
+        margin-bottom: 2.5rem;
+        padding: 1rem 0;
+      }
+      .strip-claim {
+        font-size: 1rem;
+      }
+      .strip-eyebrow {
+        font-size: 0.6rem;
+      }
     }
 
     /* Masthead */
