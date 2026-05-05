@@ -71,7 +71,7 @@ export const OFF_THE_RECORD: OffTheRecordRow[] = [
     name: 'coeymusa/cariadletters',
     privacy: 'PRIVATE',
     commits: 16,
-    blurb: 'Couples SaaS — repo private, product live at cariadletters.com',
+    blurb: 'Couples SaaS — launched in 14 commits, now at 70+ with i18n × 8 and a Lookbook',
   },
   {
     name: 'coeymusa/yinyan-news',
@@ -213,7 +213,8 @@ export const SPRINT_ENTRIES: SprintEntry[] = [
       'Clerk auth, dashboard, AI spec generation (Anthropic), photo pipeline (R2 → S3, eu-west-1)',
       'Stripe billing with paywall, 14-day refund policy, AI spend tracked per couple/site/operation',
       'Resend transactional email; multi-subdomain rendering; auth-aware marketing header',
+      'Beyond the window: by Day 8 the repo crossed 70 commits — added i18n × 8 languages (locale carried through to the AI prose), a public Lookbook of styled demos (polaroid/magazine/cinematic/editorial), and geo-detected currency on billing',
     ],
-    windowSummary: '14 commits · 17:41 → 22:44 UTC',
+    windowSummary: '14 commits launch night · 70+ by week\u2009two',
   },
 ];
