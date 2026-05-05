@@ -108,7 +108,7 @@ import { RouterLink } from '@angular/router';
           <h2 class="section-title">Recent Builds</h2>
 
           <p class="works-blurb">
-            Eight shipped projects spanning AI SaaS, fintech platforms,
+            Ten shipped projects spanning AI SaaS, fintech platforms,
             ML pipelines, mobile apps, developer tooling, and consultancy services.
             <a routerLink="/" class="works-link">
               <span class="works-arrow">→</span>

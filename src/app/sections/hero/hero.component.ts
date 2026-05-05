@@ -50,7 +50,7 @@ import { CardOracleComponent } from '../card-oracle/card-oracle.component';
           <div class="abstract-rule"><span>ABSTRACT</span></div>
 
           <p class="abstract">
-            A curated archive of eight entries — AI-driven
+            A curated archive of ten entries — AI-driven
             <em>SaaS platforms</em>, fintech systems, machine-learning pipelines,
             developer tooling, and consultancy services. Built solo.
             Shipped in production. Collected, here, in one place.
