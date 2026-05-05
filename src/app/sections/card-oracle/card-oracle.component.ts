@@ -762,11 +762,7 @@ export class CardOracleComponent {
   private readonly teleport = inject(TeleportService);
   private readonly sanitizer = inject(DomSanitizer);
 
-  /** Deck excludes MCU Cockpit — internal-tooling entry shouldn't be the
-   *  random first-impression project for a viewer. The d8 still shows the
-   *  Cockpit face (the metaphor stays intact, the roll just never lands
-   *  there); the deck physically omits it. */
-  readonly projects: Project[] = PROJECTS.filter((p) => p.id !== 'mcu-cockpit');
+  readonly projects: Project[] = PROJECTS;
   readonly romans = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII'];
 
   /** Pre-trusted SVG markup per project — computed once. */
