@@ -11,6 +11,90 @@
   position: relative;
 }
 
+/* ====== SIDE-PROJECT TIER ======
+   Compact layout for weekend builds and small utilities so they don't compete
+   with flagship apps for attention. Smaller numeral, no dropcap, smaller
+   polaroid, tighter spacing, no themed specimen device. */
+.entry--side {
+  grid-template-columns: 140px 1fr;
+  gap: 2.5rem;
+  opacity: 0.92;
+}
+
+.entry--side.entry--reversed {
+  grid-template-columns: 1fr 140px;
+}
+
+.entry--side .numeral-digit {
+  font-size: clamp(2.75rem, 4.5vw, 4rem);
+  font-weight: 300;
+}
+
+.entry--side .numeral-prefix {
+  font-size: 1rem;
+  margin-top: 0.25rem;
+}
+
+.entry--side .entry-title {
+  font-size: clamp(1.4rem, 2.6vw, 2rem);
+}
+
+.entry--side .entry-tagline {
+  font-size: 0.95rem;
+}
+
+.entry--side .entry-description {
+  font-size: 0.95rem;
+  line-height: 1.65;
+  margin: 1.5rem 0 1.75rem;
+}
+
+/* No oversized dropcap on side projects — they don't earn it. */
+.entry--side .entry-description::first-letter {
+  font-size: 1em;
+  float: none;
+  line-height: inherit;
+  margin: 0;
+  color: inherit;
+  font-weight: inherit;
+}
+
+.entry--side .polaroid {
+  max-width: 380px;
+  margin-bottom: 1.5rem;
+}
+
+.entry--side .specimen-frame {
+  display: none;
+}
+
+.entry--side .meta-grid {
+  gap: 1.75rem;
+  padding-top: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.entry--side .feature-item,
+.entry--side .tech-item {
+  font-size: 0.85rem;
+}
+
+.entry--side .tech-item {
+  font-size: 0.68rem;
+  padding: 0.22rem 0.5rem;
+}
+
+.tier-tag {
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.25em;
+  color: var(--brass-mute);
+  font-weight: 600;
+  text-transform: uppercase;
+  border: 1px solid var(--rule-light);
+  padding: 0.18rem 0.4rem;
+}
+
 .entry--reversed {
   grid-template-columns: 1fr 220px;
 }

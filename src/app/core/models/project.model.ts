@@ -20,6 +20,10 @@ export interface Project {
   hideSpecimen?: boolean;
   /** Public source-code URL — surfaced as a quiet "open source" link in the card footer */
   repoUrl?: string;
+  /** Visual hierarchy. 'flagship' = full-size archive entry (default). 'side' = compact card,
+   *  reserved for weekend-build experiments and small utilities so they don't compete with
+   *  the main apps for attention. */
+  tier?: 'flagship' | 'side';
 }
 
 /** Builds a screenshot URL for any live site via Microlink (free tier, no auth).
@@ -452,6 +456,7 @@ export const PROJECTS: Project[] = [
     ],
     liveUrl: 'https://whatisyourconcern.com',
     category: 'saas',
+    tier: 'side',
     gradient: 'linear-gradient(135deg, #c7321b, #d4a24a)',
     icon: '<circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><circle cx="16" cy="9" r="1.6" fill="currentColor"/>',
     theme: 'global-atlas',
@@ -536,6 +541,7 @@ export const PROJECTS: Project[] = [
     liveUrl: 'https://removeclaudewhitespace.com',
     repoUrl: 'https://github.com/coeymusa/removeclaudewhitespace',
     category: 'service',
+    tier: 'side',
     gradient: 'linear-gradient(135deg, #818cf8, #c084fc)',
     icon: '<circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/>',
     theme: 'service-stamp',

@@ -17,6 +17,7 @@ import { Project, previewUrl } from '../../../core/models/project.model';
     <article
       class="entry"
       [class.entry--reversed]="reversed()"
+      [class.entry--side]="project().tier === 'side'"
       [attr.data-theme]="project().theme"
       [style.--theme-accent]="project().accent"
     >
@@ -27,6 +28,10 @@ import { Project, previewUrl } from '../../../core/models/project.model';
           <span class="numeral-digit">{{ paddedIndex() }}</span>
         </div>
         <div class="numeral-meta">
+          @if (project().tier === 'side') {
+            <span class="tier-tag">SIDE · WEEKEND BUILD</span>
+            <span class="cat-rule"></span>
+          }
           <span class="cat-tag">{{ getCategoryLabel() }}</span>
           <span class="cat-rule"></span>
           <span class="cat-id">{{ project().id }}</span>

@@ -282,6 +282,12 @@ interface FilterChip {
       border-top: 1px solid var(--rule);
     }
 
+    /* Tighter spacing for side projects so they cluster and don't feel
+       weighty like flagship entries. */
+    .entries > app-project-card:has(.entry--side) {
+      padding-top: 2.75rem;
+    }
+
     @media (max-width: 1024px) {
       .entries {
         gap: 3.5rem;
