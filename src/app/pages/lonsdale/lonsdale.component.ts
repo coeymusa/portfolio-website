@@ -120,8 +120,8 @@ interface PagePair {
                       <span class="compare-handle-line"></span>
                       <span class="compare-handle-knob" aria-hidden="true">⇄</span>
                     </div>
-                    <span class="compare-label compare-label--before">WORDPRESS</span>
-                    <span class="compare-label compare-label--after">ASTRO</span>
+                    <span class="compare-label compare-label--before">← BEFORE · WORDPRESS</span>
+                    <span class="compare-label compare-label--after">AFTER · ASTRO →</span>
                   </div>
 
                   <footer class="compare-urls">
@@ -136,6 +136,50 @@ interface PagePair {
                       <span class="url-arrow">↗</span>
                     </a>
                   </footer>
+                </article>
+              }
+            </div>
+          </section>
+
+          <!-- ===== PART ONE.5 · NEW SURFACES ===== -->
+          <section class="surfaces-section" aria-labelledby="surfaces-h">
+            <header class="section-head">
+              <div class="section-rule">
+                <span class="section-eyebrow">PART ONE.5 · THE NEW SURFACES</span>
+              </div>
+              <h2 id="surfaces-h" class="section-title">
+                <em>What</em> didn't exist before
+              </h2>
+              <p class="section-lede">
+                The drag-to-compare above shows the <em>same</em> page rebuilt. Below
+                are two surfaces where the rebuild added real product depth &mdash;
+                no equivalent on the WordPress side, so no slider would do them
+                justice.
+              </p>
+            </header>
+
+            <div class="surfaces-grid">
+              @for (s of surfaces; track s.slug) {
+                <article class="surface">
+                  <header class="surface-head">
+                    <span class="surface-eyebrow">{{ s.eyebrow }}</span>
+                    <h3 class="surface-name">{{ s.title }}</h3>
+                    <p class="surface-note">{{ s.note }}</p>
+                  </header>
+                  <a class="surface-shot" [href]="s.url" target="_blank" rel="noopener noreferrer">
+                    <img [src]="s.image" [alt]="s.title + ' on the new Astro site'" loading="lazy" decoding="async" />
+                    <span class="surface-shot-tag">NEW</span>
+                  </a>
+                  <ul class="surface-bullets">
+                    @for (b of s.bullets; track b) {
+                      <li>{{ b }}</li>
+                    }
+                  </ul>
+                  <a class="surface-url" [href]="s.url" target="_blank" rel="noopener noreferrer">
+                    <span class="url-tag url-tag--new">LIVE</span>
+                    <span class="url-text">{{ s.urlShort }}</span>
+                    <span class="url-arrow">↗</span>
+                  </a>
                 </article>
               }
             </div>
@@ -415,9 +459,112 @@ interface PagePair {
     .section-lede em { color: var(--brass); font-style: italic; }
 
     .compare-section,
+    .surfaces-section,
     .stack-section,
     .ledger-section,
     .grace-section { margin-bottom: 6rem; }
+
+    /* ===== NEW SURFACES ===== */
+    .surfaces-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+    }
+    @media (max-width: 920px) {
+      .surfaces-grid { grid-template-columns: 1fr; gap: 4rem; }
+    }
+    .surface-head { margin-bottom: 1.25rem; }
+    .surface-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.25em;
+      color: var(--text-faint);
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+    .surface-name {
+      font-family: var(--font-display);
+      font-variation-settings: 'opsz' 96;
+      font-size: 1.5rem;
+      line-height: 1.15;
+      color: var(--paper);
+      letter-spacing: -0.02em;
+      margin-bottom: 0.4rem;
+    }
+    .surface-note {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: 0.95rem;
+      color: var(--text-mute);
+      line-height: 1.55;
+    }
+    .surface-shot {
+      position: relative;
+      display: block;
+      border: 1px solid var(--rule);
+      background: var(--ink-deep);
+      overflow: hidden;
+      margin-bottom: 1.25rem;
+      transition: border-color 0.2s ease;
+    }
+    .surface-shot:hover { border-color: rgba(255, 107, 53, 0.5); }
+    .surface-shot img {
+      display: block;
+      width: 100%;
+      height: auto;
+      max-height: 540px;
+      object-fit: cover;
+      object-position: top center;
+    }
+    .surface-shot-tag {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.25em;
+      padding: 0.3rem 0.65rem;
+      background: rgba(255, 107, 53, 0.12);
+      border: 1px solid rgba(255, 107, 53, 0.5);
+      color: var(--ember);
+      backdrop-filter: blur(4px);
+    }
+    .surface-bullets {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 1rem;
+    }
+    .surface-bullets li {
+      font-family: var(--font-display);
+      font-size: 0.92rem;
+      line-height: 1.55;
+      color: var(--text);
+      padding: 0.45rem 0 0.45rem 1.25rem;
+      position: relative;
+      border-bottom: 1px dashed var(--rule);
+    }
+    .surface-bullets li:last-child { border-bottom: none; }
+    .surface-bullets li::before {
+      content: '›';
+      position: absolute;
+      left: 0;
+      color: var(--brass-mute);
+      font-family: var(--font-mono);
+    }
+    .surface-url {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 0.6rem;
+      text-decoration: none;
+      color: var(--text-mute);
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--rule);
+      width: 100%;
+      transition: color 0.15s ease;
+    }
+    .surface-url:hover { color: var(--paper); }
 
     /* ===== COMPARE SLIDER ===== */
     .compare-grid { display: grid; gap: 4rem; }
@@ -526,8 +673,17 @@ interface PagePair {
       pointer-events: none;
       z-index: 3;
     }
-    .compare-label--before { left: 0.75rem; }
-    .compare-label--after  { right: 0.75rem; color: var(--ember); border-color: rgba(255, 107, 53, 0.4); }
+    .compare-label--before {
+      left: 0.75rem;
+      color: var(--text-mute);
+      background: rgba(10, 9, 7, 0.7);
+    }
+    .compare-label--after  {
+      right: 0.75rem;
+      color: var(--ember);
+      background: rgba(255, 107, 53, 0.12);
+      border-color: rgba(255, 107, 53, 0.5);
+    }
 
     .compare-urls {
       display: flex;
@@ -816,6 +972,39 @@ export class LonsdaleComponent {
       astroShort: '/contact-us/',
       wp: 'assets/projects/lonsdale/wp-contact.jpg',
       astro: 'assets/projects/lonsdale/astro-contact.jpg',
+    },
+  ];
+
+  surfaces = [
+    {
+      slug: 'product-detail',
+      eyebrow: '07 · SINGLE VAN, IN FULL',
+      title: 'Spec grid + variation picker',
+      note: 'A WordPress accordion of plain-text body copy, parsed once at build time into a structured 3-column spec grid with a native disclosure variation picker beneath.',
+      image: 'assets/projects/lonsdale/astro-product-detail.jpg',
+      url: 'https://londsdale.vercel.app/van-sales/citroen-relay-luton-body-van-inc-tail-lift-13-4ft-335l3-blue2-2hdi-140ps-euro-6-/',
+      urlShort: '/van-sales/citroen-relay-…',
+      bullets: [
+        'Visual-Composer accordion → typed JSON fields, parsed by migration/03',
+        'Three-column spec grid: engine, body, fitments — no plugin',
+        'Native <details> variation picker, ~30 lines of TS to swap price',
+        'JSON-LD Product + AggregateOffer schema generated from the same data',
+      ],
+    },
+    {
+      slug: 'bodybuilding-detail',
+      eyebrow: '08 · BODYBUILDING DETAIL',
+      title: 'Gallery page with bespoke-quote CTA',
+      note: 'Each of the 12 bespoke-build galleries gets its own page — image-led grid, descriptive copy, and a dedicated "request a build" CTA that the WordPress site never had.',
+      image: 'assets/projects/lonsdale/astro-bodybuilding-detail.jpg',
+      url: 'https://londsdale.vercel.app/galleries/contour/',
+      urlShort: '/galleries/contour/',
+      bullets: [
+        '12 gallery pages, each driven by a JSON content collection entry',
+        'Responsive 4:3 image grid with WebP variants at 400/800/1200w',
+        '"Discuss a build" CTA scrolling to a contact intent — new addition',
+        'Breadcrumb back to /bodybuilding/, JSON-LD ImageGallery on each',
+      ],
     },
   ];
 
