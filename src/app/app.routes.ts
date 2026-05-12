@@ -18,5 +18,12 @@ export const routes: Routes = [
         (m) => m.OneWeekComponent
       ),
   },
+  {
+    path: 'lonsdale',
+    loadComponent: () =>
+      import('./pages/lonsdale/lonsdale.component').then(
+        (m) => m.LonsdaleComponent
+      ),
+  },
   { path: '**', redirectTo: '' },
 ];

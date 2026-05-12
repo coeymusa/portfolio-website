@@ -21,9 +21,18 @@ interface FilterChip {
   template: `
     <section id="projects" class="section archive">
       <div class="container">
-        <!-- Case-study insert: a slim editorial strip above the masthead -->
+        <!-- Case-study inserts: slim editorial strips above the masthead -->
+        <a class="case-study-strip" routerLink="/lonsdale">
+          <span class="strip-eyebrow">CHAPTER THREE · NEW</span>
+          <span class="strip-claim">
+            WordPress to Astro, agency to me.
+            <em>Drag to compare the cutover</em>
+          </span>
+          <span class="strip-arrow">→</span>
+        </a>
+
         <a class="case-study-strip" routerLink="/one-week">
-          <span class="strip-eyebrow">CHAPTER TWO · NEW</span>
+          <span class="strip-eyebrow">CHAPTER TWO</span>
           <span class="strip-claim">
             Four products shipped in seven days.
             <em>Read the case study</em>
