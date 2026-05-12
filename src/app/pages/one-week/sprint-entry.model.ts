@@ -9,7 +9,8 @@ export interface SprintEntry {
   isoDate: string;
   title: string;
   tagline: string;
-  liveUrl: string;
+  /** Live site URL. Omit if the project has been decommissioned. */
+  liveUrl?: string;
   repoUrl?: string;
   /** anchor id of the matching entry in The Archive, if one exists */
   archiveSlug?: string;
@@ -149,8 +150,7 @@ export const SPRINT_ENTRIES: SprintEntry[] = [
     chapter: 'THE BLITZ',
     isoDate: '2026-05-01',
     title: 'yinyan.news',
-    tagline: 'Paired editorial: for every hard headline, an equal-weight hopeful one. Run as a test, later abandoned — kept here as part of the honest ledger.',
-    liveUrl: 'https://yinyan.news',
+    tagline: 'Paired editorial: for every hard headline, an equal-weight hopeful one. Run as a test, later decommissioned — kept here as part of the honest ledger.',
     repoUrl: 'https://github.com/coeymusa/yinyan-news',
     accent: '#d4a24a',
     buildNotes: [
@@ -160,7 +160,7 @@ export const SPRINT_ENTRIES: SprintEntry[] = [
       'RSS feed, embed widget at /embed/[slug], press kit, IndexNow auto-ping, Vercel Analytics',
       'Postscript: ran it for a few weeks as a curation test, then shelved it — the editorial workload outweighed the signal it produced. Left here because the case study is a ledger, not a highlight reel',
     ],
-    windowSummary: '11 commits · 17:26 → 21:50 UTC · later abandoned',
+    windowSummary: '11 commits · 17:26 → 21:50 UTC · later decommissioned',
   },
   {
     date: 'MAY 01',

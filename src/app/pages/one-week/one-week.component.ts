@@ -156,16 +156,23 @@ interface RenderedEntry extends SprintEntry {
                   </ul>
 
                   <footer class="card-foot">
-                    <a
-                      class="visit"
-                      [href]="entry.liveUrl"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <span class="visit-arrow">→</span>
-                      <span class="visit-text">view it live</span>
-                      <span class="visit-url">{{ entry.shortUrl }}</span>
-                    </a>
+                    @if (entry.liveUrl) {
+                      <a
+                        class="visit"
+                        [href]="entry.liveUrl"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <span class="visit-arrow">→</span>
+                        <span class="visit-text">view it live</span>
+                        <span class="visit-url">{{ entry.shortUrl }}</span>
+                      </a>
+                    } @else {
+                      <span class="visit visit--retired" aria-disabled="true">
+                        <span class="visit-arrow">×</span>
+                        <span class="visit-text">decommissioned</span>
+                      </span>
+                    }
 
                     @if (entry.repoUrl) {
                       <a
@@ -796,6 +803,14 @@ interface RenderedEntry extends SprintEntry {
     }
 
     .visit:hover { opacity: 0.85; }
+
+    .visit--retired {
+      color: var(--brass-mute);
+      opacity: 0.75;
+      cursor: default;
+      pointer-events: none;
+    }
+    .visit--retired:hover { opacity: 0.75; }
 
     .visit-arrow {
       font-family: var(--font-mono);
@@ -1447,7 +1462,8 @@ export class OneWeekComponent implements OnInit {
     return n.toString().padStart(2, '0');
   }
 
-  private shortHost(url: string): string {
+  private shortHost(url?: string): string {
+    if (!url) return '';
     try {
       return new URL(url).host.replace(/^www\./, '');
     } catch {
