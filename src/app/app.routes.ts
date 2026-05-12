@@ -25,5 +25,10 @@ export const routes: Routes = [
         (m) => m.LonsdaleComponent
       ),
   },
+  {
+    path: 'mcu',
+    loadComponent: () =>
+      import('./pages/mcu/mcu.component').then((m) => m.McuComponent),
+  },
   { path: '**', redirectTo: '' },
 ];
