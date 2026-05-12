@@ -3,13 +3,13 @@
 // for the /mcu case study. Same pattern as screenshot-lonsdale.js.
 //
 // Usage: node scripts/screenshot-mcu.js
-// Output: src/assets/projects/mcu/{old,new}-{slug}.jpg
+// Output: public/assets/projects/mcu/{old,new}-{slug}.jpg
 
 const { chromium } = require('playwright');
 const path = require('path');
 const fs = require('fs');
 
-const OUT = path.resolve(__dirname, '..', 'src', 'assets', 'projects', 'mcu');
+const OUT = path.resolve(__dirname, '..', 'public', 'assets', 'projects', 'mcu');
 fs.mkdirSync(OUT, { recursive: true });
 
 const PAGES = [

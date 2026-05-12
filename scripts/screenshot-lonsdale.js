@@ -3,13 +3,13 @@
 // modest and forces a meaningful above-the-fold comparison.
 //
 // Usage: node scripts/screenshot-lonsdale.js
-// Output: src/assets/projects/lonsdale/{wp,astro}-{slug}.jpg
+// Output: public/assets/projects/lonsdale/{wp,astro}-{slug}.jpg
 
 const { chromium } = require('playwright');
 const path = require('path');
 const fs = require('fs');
 
-const OUT = path.resolve(__dirname, '..', 'src', 'assets', 'projects', 'lonsdale');
+const OUT = path.resolve(__dirname, '..', 'public', 'assets', 'projects', 'lonsdale');
 fs.mkdirSync(OUT, { recursive: true });
 
 // Slug → [WP url, Astro url]. Hero (viewport) shot, JPG q85.
