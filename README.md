@@ -14,7 +14,7 @@ A curated archive of shipped work — AI-driven SaaS platforms, regulated fintec
 
 **Featured case studies on the live site:**
 
-- **MCU** — Regulated loan-management platform for an Isle of Man credit union. Three services (Angular 19 + Spring Boot 3 + Spring Authorization Server), 280+ endpoints, OAuth2/OIDC, four-eyes and director sign-off enforced in the schema. Electron desktop client, code-signed.
+- **MCU** *(private — regulated product)* — Loan-management platform for a regulated credit union. Three services (Angular 19 + Spring Boot 3 + Spring Authorization Server), 280+ endpoints, OAuth2/OIDC, four-eyes and director sign-off enforced in the schema. Electron desktop client, code-signed. Details on request.
 - **One Week** — A constraint-based build challenge.
 - **Lonsdale** — Brand / product case study.
 - **CV** — Long-form CV at [/cv](https://www.coreyscodecave.com/cv).
