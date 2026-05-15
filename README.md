@@ -1,59 +1,56 @@
-# CoreyPortfolio
+# coreyscodecave.com
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.22.
+Source for **[coreyscodecave.com](https://www.coreyscodecave.com/)** — the personal site of **Corey Musa**, senior full-stack engineer (Zürich · fintech · AI).
 
-## Development server
+> **Open to work** — Senior, Staff or Principal full-stack roles · Zürich on-site / hybrid or fully remote across EU time zones · permanent or contract.
+> Fastest route in: **[coreymusa@outlook.com](mailto:coreymusa@outlook.com)**.
+> See also: **[github.com/coeymusa](https://github.com/coeymusa)** · **[linkedin.com/in/corey-musa](https://www.linkedin.com/in/corey-musa/)**.
 
-To start a local development server, run:
+---
 
-```bash
-ng serve
-```
+## About the site
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+A curated archive of shipped work — AI-driven SaaS platforms, regulated fintech systems, machine-learning pipelines, developer tooling, and consultancy services. Most built solo. All in production.
 
-## Code scaffolding
+**Featured case studies on the live site:**
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+- **MCU** — Regulated loan-management platform for an Isle of Man credit union. Three services (Angular 19 + Spring Boot 3 + Spring Authorization Server), 280+ endpoints, OAuth2/OIDC, four-eyes and director sign-off enforced in the schema. Electron desktop client, code-signed.
+- **One Week** — A constraint-based build challenge.
+- **Lonsdale** — Brand / product case study.
+- **CV** — Long-form CV at [/cv](https://www.coreyscodecave.com/cv).
 
-```bash
-ng generate component component-name
-```
+## Stack
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+Angular 19 (standalone components, lazy-loaded routes), TypeScript 5.7, SCSS, OnPush change detection. No UI framework dependency by design — every section is hand-built.
 
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
+## Local development
 
 ```bash
-ng build
+npm install
+npm start         # ng serve → http://localhost:4200
+npm run build     # production build → dist/corey-portfolio/
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+## Repository layout
 
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-ng test
+```
+src/app/
+├── pages/
+│   ├── home/            # Landing — hero, projects, about, contact
+│   ├── cv/              # Long-form CV
+│   ├── mcu/             # MCU case study
+│   ├── one-week/        # One Week case study
+│   └── lonsdale/        # Lonsdale case study
+├── sections/
+│   ├── hero/            # Code Cave masthead + interactive dice / oracle
+│   ├── projects/        # Shipped-work archive cards
+│   ├── about/
+│   ├── contact/
+│   ├── footer/
+│   └── nav/
+└── core/                # Shared utilities
 ```
 
-## Running end-to-end tests
+---
 
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+*Hiring? Read the [profile README](https://github.com/coeymusa) for the full pitch.*
